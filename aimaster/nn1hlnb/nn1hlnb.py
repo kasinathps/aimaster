@@ -64,5 +64,3 @@ def train(iterations,learningrate=0.1,printy=True,printw=True):
   if printw:
     print('w1:\n',w1,'\nw2:\n',w2)
   return
-
-
