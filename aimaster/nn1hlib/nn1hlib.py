@@ -1,3 +1,5 @@
+#creates neural net with biased input and 1 hidden layer
+#make input matrix as 'x' and output matrix as 'y'
 import numpy as np
 from scipy.special import expit
 
@@ -5,18 +7,22 @@ def createnn(inputsize,hiddenlayersize,outputsize,pt=True):
   '''creates weight matrices w1 and w2 with appropriate weights
   according to inputsize,hiddenlayersize and outputsize
   if pt is set true (true by default) the function prints weight matrices 
-  at the end , else if pt is set false it wont'''
-  global w1,w2
+  at the end , else if pt is set false it wont
+
+  NOTE: give input matrix as 'x' biased input matrix X will be created
+  by the function itself!'''
+  global w1,w2,X,x
+  X=np.ones([INPUT_SIZE+1,1])
+  X=np.append(X,x,axis=1)
   w1=np.random.rand(hiddenlayersize,inputsize)
   w2=np.random.rand(outputsize,hiddenlayersize)
   if pt:
-    print('w1:\n',w1,'\nw2:\n',w2)
+    print('w1:\n',w1,'\nw2:\n',w2,'\nX:\n,X)
   return
 
 def weights():
   
   ''' prints out the weight matrices w1 and w2 '''
-  
   global w1,w2
   print('w1:\n',w1,'\nw2:\n',w2)
   return
