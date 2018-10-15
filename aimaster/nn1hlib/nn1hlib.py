@@ -17,7 +17,7 @@ def createnn(inputsize,hiddenlayersize,outputsize,pt=True):
   w1=np.random.rand(hiddenlayersize,inputsize)
   w2=np.random.rand(outputsize,hiddenlayersize)
   if pt:
-    print('w1:\n',w1,'\nw2:\n',w2,'\nX:\n,X)
+    print('w1:\n',w1,'\nw2:\n',w2,'\nX:\n',X)
   return
 
 def weights():
