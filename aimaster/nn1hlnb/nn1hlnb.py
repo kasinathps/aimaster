@@ -34,7 +34,7 @@ def predict(x):
   global w1,w2
   return expit(np.matmul(expit(np.matmul(x,w1.T)),w2.T))
 
-def train(iterations,learningrate=0.1,printy=True,printw=True):
+def train(iterations,learningrate=0.1,printy=True,printw=True,X=X,y=y):
   
   '''over the iterations, this function optimizes the values of w1 and
    w2 to reduce output error.
@@ -46,7 +46,7 @@ def train(iterations,learningrate=0.1,printy=True,printw=True):
   morethan required (result: gradient descent will not converge) or less 
   than required (result: slow training). feel free to experiment with 
   different values as this module is for basic understanding :) '''
-  global w1,w2,X,y
+  global w1,w2
   for j in range(iterations):
     for i in range(len(X)):
       Hsum=np.matmul(X[i],w1.T)
