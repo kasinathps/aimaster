@@ -2,7 +2,7 @@
 #make input matrix as 'x' and output matrix as 'y'
 import numpy as np
 from scipy.special import expit
-
+global x,y
 def createnn(inputsize,hiddenlayersize,outputsize,pt=True):
   '''creates weight matrices w1 and w2 with appropriate weights
   according to inputsize,hiddenlayersize and outputsize
@@ -11,7 +11,7 @@ def createnn(inputsize,hiddenlayersize,outputsize,pt=True):
 
   NOTE: give input matrix as 'x' biased input matrix X will be created
   by the function itself!'''
-  global w1,w2,X,x
+  global w1,w2,x,X	
   X=np.ones([inputsize+1,1])
   X=np.append(X,x,axis=1)
   w1=np.random.rand(hiddenlayersize,inputsize+1)
