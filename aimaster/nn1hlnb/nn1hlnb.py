@@ -34,7 +34,7 @@ def predict(x):
   global w1,w2
   return expit(np.matmul(expit(np.matmul(x,w1.T)),w2.T))
 
-def train(iterations,learningrate=0.1,X=X,y=y,printy=True,printw=True):
+def train(X,y,iterations,learningrate=0.1,printy=True,printw=True):
   
   '''over the iterations, this function optimizes the values of w1 and
    w2 to reduce output error.
