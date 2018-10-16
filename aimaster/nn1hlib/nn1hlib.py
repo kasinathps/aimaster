@@ -11,7 +11,7 @@ def createnn(inputsize,hiddenlayersize,outputsize,x,pt=True):
   NOTE: give input matrix as 'x' , biased input matrix X will be created
   by the function itself!'''
   global w1,w2,X
-  X=np.ones(x.shape[0],1])
+  X=np.ones(x.shape[0],1)
   X=np.append(X,x,axis=1)
   w1=np.random.rand(hiddenlayersize,inputsize+1)
   w2=np.random.rand(outputsize,hiddenlayersize)
