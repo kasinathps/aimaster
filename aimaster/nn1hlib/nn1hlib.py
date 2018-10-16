@@ -11,7 +11,7 @@ def createnn(inputsize,hiddenlayersize,outputsize,x,pt=True):
   NOTE: give input matrix as 'x' , biased input matrix X will be created
   by the function itself!'''
   global w1,w2,X
-  X=np.ones([inputsize+1,1])
+  X=np.ones(x.shape[0],1])
   X=np.append(X,x,axis=1)
   w1=np.random.rand(hiddenlayersize,inputsize+1)
   w2=np.random.rand(outputsize,hiddenlayersize)
@@ -34,7 +34,7 @@ def predict(x,add_bias=0):
   
   global w1,w2
   if add_bias:
-    x=np.append([1],x)
+    x=np.append(np.ones(x.shape[0],1),x)
   return expit(np.matmul(expit(np.matmul(x,w1.T)),w2.T))
 
 def train(X,y,iterations,learningrate=0.1,printy=True,printw=True):
