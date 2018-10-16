@@ -2,13 +2,13 @@
 #make input matrix as 'x' and output matrix as 'y'
 import numpy as np
 from scipy.special import expit
-def createnn(inputsize,hiddenlayersize,outputsize,pt=True):
+def createnn(inputsize,hiddenlayersize,outputsize,x,pt=True):
   '''creates weight matrices w1 and w2 with appropriate weights
   according to inputsize,hiddenlayersize and outputsize
   if pt is set true (true by default) the function prints weight matrices 
   at the end , else if pt is set false it wont
 
-  NOTE: give input matrix as 'x' biased input matrix X will be created
+  NOTE: give input matrix as 'x' , biased input matrix X will be created
   by the function itself!'''
   global w1,w2,X
   X=np.ones([inputsize+1,1])
@@ -37,7 +37,7 @@ def predict(x,add_bias=0):
     x=np.append([1],x)
   return expit(np.matmul(expit(np.matmul(x,w1.T)),w2.T))
 
-def train(iterations,learningrate=0.1,printy=True,printw=True,y=y):
+def train(iterations,learningrate=0.1,printy=True,printw=True,X,y):
   
   '''over the iterations, this function optimizes the values of w1 and
    w2 to reduce output error.
@@ -49,7 +49,7 @@ def train(iterations,learningrate=0.1,printy=True,printw=True,y=y):
   morethan required (result: gradient descent will not converge) or less 
   than required (result: slow training). feel free to experiment with 
   different values as this module is for basic understanding :) '''
-  global w1,w2,X
+  global w1,w2
   for j in range(iterations):
     for i in range(len(X)):
       Hsum=np.matmul(X[i],w1.T)
