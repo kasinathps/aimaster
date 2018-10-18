@@ -34,7 +34,7 @@ def predict(x,add_bias=0):
   
   global w1,w2
   if add_bias:
-    x=np.append(np.ones(x.shape[0],1),x)
+    x=np.append(np.ones([x.shape[0],1]),x,axis=1)
   return expit(np.matmul(expit(np.matmul(x,w1.T)),w2.T))
 
 def train(X,y,iterations,learningrate=0.1,printy=True,printw=True):
