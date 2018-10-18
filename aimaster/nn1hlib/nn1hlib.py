@@ -14,7 +14,7 @@ def createnn(inputsize,hiddenlayersize,outputsize,pt=True):
   w1=np.random.rand(hiddenlayersize,inputsize+1)
   w2=np.random.rand(outputsize,hiddenlayersize)
   if pt:
-    print('w1:\n',w1,'\nw2:\n',w2,'\nX:\n',X)
+    print('w1:\n',w1,'\nw2:\n',w2)
   return
 
 def weights():
@@ -53,6 +53,7 @@ def train(x,y,iterations,learningrate=0.1,printy=True,printw=True):
   global w1,w2
   X=np.ones([x.shape[0],1])
   X=np.append(X,x,axis=1)
+  print('\nX:\n',X)
   for j in range(iterations):
     for i in range(len(X)):
       Hsum=np.matmul(X[i],w1.T)
