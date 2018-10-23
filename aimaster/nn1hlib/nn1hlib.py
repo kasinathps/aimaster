@@ -14,7 +14,7 @@ def createnn(inputsize,hiddenlayersize,outputsize,pt=True):
   w1=np.random.rand(hiddenlayersize,inputsize+1)
   w2=np.random.rand(outputsize,hiddenlayersize)
   if pt:
-    print('w1:\n',w1,'\nw2:\n',w2,'\nX:\n',X)
+    print('w1:\n',w1,'\nw2:\n',w2)
   return
 
 def weights():
@@ -32,7 +32,7 @@ def predict(x,add_bias=0):
   
   global w1,w2
   if add_bias:
-    x=np.append(np.ones([x.shape[0],1]),x,axis=1)
+    x=np.pad(x,((0,0),(1,0)),'constant',constant_values=(1))
   return expit(np.matmul(expit(np.matmul(x,w1.T)),w2.T))
 
 def train(x,y,iterations,learningrate=0.1,printy=True,printw=True):
@@ -51,8 +51,8 @@ def train(x,y,iterations,learningrate=0.1,printy=True,printw=True):
   NOTE: give input matrix as 'x' , biased input matrix X will be created
   by the function itself!'''
   global w1,w2
-  X=np.ones([x.shape[0],1])
-  X=np.append(X,x,axis=1)
+  X=np.pad(x,((0,0),(1,0)),'constant',constant_values=(1))
+  print('\nX:\n',X)
   for j in range(iterations):
     for i in range(len(X)):
       Hsum=np.matmul(X[i],w1.T)
