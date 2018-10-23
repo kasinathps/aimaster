@@ -8,7 +8,7 @@ setuptools.setup(
   author_email='kasinathps@gmail.com',
   packages=setuptools.find_packages(),
   install_requires=['numpy','scipy'],
-  version='1.0.7',
+  version='1.1.0',
   license='MIT',
   description='Artificial Neural Network learning tools',
   long_description=open('README.md').read(),
