@@ -2,6 +2,7 @@
 #make input matrix as 'x' and output matrix as 'y'
 import numpy as np
 from scipy.special import expit
+from aimaster.tools import nnplotter
 def createnn(inputsize,hiddenlayersize,outputsize,pt=True):
   '''creates weight matrices w1 and w2 with appropriate weights
   according to inputsize,hiddenlayersize and outputsize
@@ -17,11 +18,16 @@ def createnn(inputsize,hiddenlayersize,outputsize,pt=True):
     print('w1:\n',w1,'\nw2:\n',w2)
   return
 
-def weights():
+def weights(plot=False):
   
   ''' prints out the weight matrices w1 and w2 '''
   global w1,w2
   print('w1:\n',w1,'\nw2:\n',w2)
+  if plot:
+    nnplotter.plotinit()
+    nnplotter.plotweights(w1,0)
+    nnplotter.plotweights(w2,1)
+    nnplotter.plt.show()
   return
 
 def predict(x,add_bias=0):
@@ -35,13 +41,16 @@ def predict(x,add_bias=0):
     x=np.pad(x,((0,0),(1,0)),'constant',constant_values=1)
   return expit(np.matmul(expit(np.matmul(x,w1.T)),w2.T))
 
-def train(x,y,iterations,learningrate=0.1,printy=True,printw=True):
+def train(x,y,iterations,learningrate=0.1,printy=True,printw=True,plot=False,plot_delay=0.00000001):
   
   '''over the iterations, this function optimizes the values of w1 and
    w2 to reduce output error.
   if printy is set True (default) it prints the output on each iterations,
   if printw is set True (default) it prints the weight matrices on the 
   end of iterations 
+  
+  set plot = True for visualization of weights during training!
+  (with aimaster's nnplotter tool)
   
   NOTE: learning rate is set default to 0.1 which sometimes is
   morethan required (result: gradient descent will not converge) or less 
@@ -51,6 +60,8 @@ def train(x,y,iterations,learningrate=0.1,printy=True,printw=True):
   NOTE: give input matrix as 'x' , biased input matrix X will be created
   by the function itself!'''
   global w1,w2
+  if plot:
+      nnplotter.plotinit()
   X=np.pad(x,((0,0),(1,0)),'constant',constant_values=1)
   for j in range(iterations):
     for i in range(len(X)):
@@ -64,6 +75,11 @@ def train(x,y,iterations,learningrate=0.1,printy=True,printw=True):
       w1corr=np.matmul(np.array([np.matmul(dtotal_dsum,w2)*(result1*(1-result1))]).T,[X[i]])
       w2=w2-learningrate*w2corr
       w1=w1-learningrate*w1corr
+      if plot:
+          nnplotter.ax.clear()
+          nnplotter.plotweights(w1,0)
+          nnplotter.plotweights(w2,1)
+          nnplotter.plt.pause(plot_delay)
       if printy:
         print('y= ',expit(np.matmul(expit(np.matmul(X,w1.T)),w2.T)))
   if printw:

@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.special import expit
+from aimaster.tools import nnplotter
 
 def createnn(inputsize,hiddenlayersize,outputsize,pt=True):
   '''creates weight matrices w1 and w2 with appropriate weights
@@ -23,6 +24,10 @@ def weights():
   
   global w1,w2
   print('w1:\n',w1,'\nw2:\n',w2)
+  nnplotter.plotinit()
+  nnplotter.plotweights(w1,0)
+  nnplotter.plotweights(w2,1)
+  nnplotter.plt.pause(0.5)
   return
 
 def predict(x):
@@ -34,7 +39,7 @@ def predict(x):
   global w1,w2
   return expit(np.matmul(expit(np.matmul(x,w1.T)),w2.T))
 
-def train(X,y,iterations,learningrate=0.1,printy=True,printw=True):
+def train(X,y,iterations,learningrate=0.1,printy=True,printw=True,plot=False):
   
   '''over the iterations, this function optimizes the values of w1 and
    w2 to reduce output error.
@@ -47,6 +52,8 @@ def train(X,y,iterations,learningrate=0.1,printy=True,printw=True):
   than required (result: slow training). feel free to experiment with 
   different values as this module is for basic understanding :) '''
   global w1,w2
+  if plot:
+      nnplotter.plotinit()
   for j in range(iterations):
     for i in range(len(X)):
       Hsum=np.matmul(X[i],w1.T)
@@ -59,8 +66,13 @@ def train(X,y,iterations,learningrate=0.1,printy=True,printw=True):
       w1corr=np.matmul(np.array([np.matmul(dtotal_dsum,w2)*(result1*(1-result1))]).T,[X[i]])
       w2=w2-learningrate*w2corr
       w1=w1-learningrate*w1corr
+      if plot:
+          nnplotter.ax.clear()
+          nnplotter.plotweights(w1,0)
+          nnplotter.plotweights(w2,1)
+          nnplotter.plt.pause(0.05)
       if printy:
         print('y= ',expit(np.matmul(expit(np.matmul(X,w1.T)),w2.T)))
   if printw:
-    print('w1:\n',w1,'\nw2:\n',w2)
+    weights()
   return

@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.special import expit
+from aimaster.tools import nnplotter
 def createnn(input_size,hidden_layer_size,output_size,pt=1):
     '''creates weight matrixes w1 and w2 ,where w2 holds bias weights
     according to input_size,hidden_layer_size and output_size
@@ -16,9 +17,14 @@ def createnn(input_size,hidden_layer_size,output_size,pt=1):
         print('w1:\n',w1,'\nw2:\n',w2)
     return
 
-def weights():
+def weights(plot=False):
     '''prints out the weight matrixes w1 and w2'''
     global w1,w2
+    if plot:
+      nnplotter.plotinit()
+      nnplotter.plotweights(w1,0)
+      nnplotter.plotweights(w2,1)
+      nnplotter.plt.show()
     print('w1:\n',w1,'\nw2:\n',w2)
     return
 
@@ -28,7 +34,7 @@ def predict(x):
     return expit(np.matmul(np.pad(expit(np.matmul(x,w1.T)),((0,0),(1,0)),
                                   'constant',constant_values=(1)),w2.T))
 
-def train(x,y,iterations,learningrate=0.1,printy=True,printw=True):
+def train(x,y,iterations,learningrate=0.1,printy=True,printw=True,plot=False,plot_delay=0.00000001):
   
   '''over the iterations, this function optimizes the values of w1 and
    w2 to reduce output error.
@@ -42,6 +48,8 @@ def train(x,y,iterations,learningrate=0.1,printy=True,printw=True):
   different values as this module is for basic understanding :)
   '''
   global w1,w2
+  if plot:
+      nnplotter.plotinit()
   for j in range(iterations):
     for i in range(len(x)):
       Hsum=np.matmul(x[i],w1.T)
@@ -55,9 +63,13 @@ def train(x,y,iterations,learningrate=0.1,printy=True,printw=True):
       w1corr=np.matmul(np.array([np.matmul(dtotal_dsum,w2)*(result1*(1-result1))]).T,[x[i]])
       w2=w2-learningrate*w2corr
       w1=w1-learningrate*np.delete(w1corr,0,0)
+      if plot:
+          nnplotter.ax.clear()
+          nnplotter.plotweights(w1,0)
+          nnplotter.plotweights(w2,1)
+          nnplotter.plt.pause(plot_delay)
       if printy:
-        print('y= ',expit(np.matmul(np.pad(expit(np.matmul(x,w1.T)),((0,0),(1,0)),
-                                  'constant',constant_values=(1)),w2.T)))
+        print('y= ',expit(np.matmul(np.pad(expit(np.matmul(x,w1.T)),((0,0),(1,0)),'constant',constant_values=(1)),w2.T)))
   if printw:
     print('w1:\n',w1,'\nw2:\n',w2)
   return
