@@ -76,9 +76,17 @@ def train(x,y,iterations,learningrate=0.1,plot=False,printy=True,printw=True,
       for i in range(len(x)):
           for j in range(len(W)-1,-1,-1):
               X=np.pad(x[i],((1,0)),'constant',constant_values=1)
-              Wcorr[2]=np.matmul(np.array([(result[2][i]-y[i])*(result[2][i]*(1-result[2][i]))]).T,np.array([result[1][i]]))
-              Wcorr[1]=np.matmul((np.matmul(np.array([(result[2][i]-y[i])*(result[2][i]*(1-result[2][i]))]),W[2])*np.array([(result[1][i]*(1-result[1][i]))])).T,np.array([result[1][i]]))
-              Wcorr[0]=np.matmul((np.matmul((np.matmul(np.array([(result[2][i]-y[i])*(result[2][i]*(1-result[2][i]))]),W[2])*np.array([(result[1][i]*(1-result[1][i]))]))[0][1:],W[1])*np.array([(result[0][i]*(1-result[0][i]))])).T,[X])
+              Wcorr[2]=np.matmul(np.array([(result[2][i]-y[i])*(result[2][i]*(
+                      1-result[2][i]))]).T,np.array([result[1][i]]))
+              Wcorr[1]=np.matmul((np.matmul(np.array([(result[2][i]-y[i])*(
+                  result[2][i]*(1-result[2][i]))]),W[2])*np.array([(
+                      result[1][i]*(1-result[1][i]))])).T,np.array(
+                          [result[1][i]]))
+              Wcorr[0]=np.matmul((np.matmul((np.matmul(np.array([(
+                  result[2][i]-y[i])*(result[2][i]*(1-result[2][i]))]),
+                      W[2])*np.array([(result[1][i]*(
+                          1-result[1][i]))]))[0][1:],W[1])*np.array([(
+                              result[0][i]*(1-result[0][i]))])).T,[X])
               W[2]=W[2]-learningrate*Wcorr[2]
               W[1]=W[1]-(learningrate/2)*np.delete(Wcorr[1],0,0)
               W[0]=W[0]-(learningrate/4)*np.delete(Wcorr[0],0,0)
