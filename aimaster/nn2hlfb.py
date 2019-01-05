@@ -81,7 +81,7 @@ def train(x,y,iterations,learningrate=0.1,plot=False,printy=True,printw=True,
               Wcorr[1]=np.matmul((np.matmul(np.array([(result[2][i]-y[i])*(
                   result[2][i]*(1-result[2][i]))]),W[2])*np.array([(
                       result[1][i]*(1-result[1][i]))])).T,np.array(
-                          [result[1][i]]))
+                          [result[0][i]]))
               Wcorr[0]=np.matmul((np.matmul((np.matmul(np.array([(
                   result[2][i]-y[i])*(result[2][i]*(1-result[2][i]))]),
                       W[2])*np.array([(result[1][i]*(
