@@ -57,7 +57,7 @@ class model:
         with open(f"{filename}",'wb') as file:
             dump(self,file)
 
-    def loadmodel(filename):
+    def loadmodel(self,filename):
         with open(f"{filename}",'rb') as file:
             return load(file)
 
