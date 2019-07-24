@@ -101,3 +101,22 @@ def train(x,y,iterations,learningrate=0.1,plot=False,printy=True,printw=True,
     for i in range(len(W)):
         print('W[%d]=\n'%i,W[i],'\n')
   return
+
+def savemodel(filename):
+    np.savez(filename,arch,W)
+
+
+def loadmodel(filename):
+    global arch,W
+    if '.npz' not in filename:
+        a=np.load(filename+'.npz')
+        arch,W=[a[i] for i in a.keys()]
+    if '.npz' in filename:
+        a=np.load(filename)
+        arch,W=[a[i] for i in a.keys()]
+    try:
+        print('Model Architecture = {}\n'.format(arch))
+        print('Model Weights W = \n {}'.format(W))
+    except:
+        print('Something went wrong double check {} exist in current \
+              working directory'.format(filename))
