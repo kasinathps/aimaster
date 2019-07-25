@@ -1,5 +1,6 @@
 import numpy as np
 from numpy import array, matmul, pad, delete
+from numpy import maximum as mx
 from numpy.random import randn
 from scipy.special import expit
 from aimaster.tools import nnplotter
@@ -38,6 +39,21 @@ class model:
             print('W[%d]=\n'%i,self.W[i],'\n')
         return
 
+    def predictrelu(self,x):
+        '''returns the network output of a specific input specifically
+            NOTE:
+                if a single input is given to predict funcion it must be of shape
+                (1,n) {n = no of input neurons}  
+                Example: [1 , 1] has a shape of (2,) which is not accepted yet
+                but [[1, 1]] has a shape of (1,2) which is desired if single input
+                You know what you are doing :) '''
+        l=len(self.W)-1
+        q=lambda z,y:mx(matmul(pad(x,((0,0),(1,0)),
+          'constant',constant_values=1),self.W[z].T),0)if z==0 else (expit(matmul(pad(q(z-1,y),((0,0),(1,0)),
+            'constant',constant_values=1),self.W[z].T)) if (z == y) else mx(matmul(pad(q(z-1,y),((0,0),(1,0)),
+            'constant',constant_values=1),self.W[z].T),0))
+        return q(l,l)
+
     def predict(self,x):
         '''returns the network output of a specific input specifically
             NOTE:
@@ -60,9 +76,9 @@ class model:
     def loadmodel(self,filename):
         with open(f"{filename}",'rb') as file:
             return load(file)
-
-    def trainsigmoid(self,x,y,iterations,learningrate=0.1,plot=False,Plotfreq=1,Plotmaxm=0,printy=True,printw=True,plot_delay=0.00000001):
-        '''over the iterations, this function optimizes the values of all weights
+    def train(self,x,y,iterations,learningrate,plot=False,activation="sigmoid",Plotfreq=1,Plotmaxm=0,printy=True,printw=True,plot_delay=0.00000001):
+        '''activation argument is used to select activation for neural network
+        Over the iterations, this function optimizes the values of all weights
         to reduce output error.
         if printy is set True (default) it prints the output on each iterations,
         if printw is set True (default) it prints the weight matrices on the 
@@ -72,7 +88,15 @@ class model:
         morethan required (result: gradient descent will not converge) or otherwise
         less than required (result: slow training). So feel free to experiment with 
         different values as this module is for basic understanding and experiments :)
+        Adaptive learning rate will be introduced in future.
         '''
+        if activation=="sigmoid":
+            self.trainsigmoid(x,y,iterations,learningrate,plot,Plotfreq,Plotmaxm,printy,printw,plot_delay)
+        if activation=="relu":
+            self.trainrelu(x,y,iterations,learningrate,plot,Plotfreq,Plotmaxm,printy,printw,plot_delay)
+
+    def trainsigmoid(self,x,y,iterations,learningrate,plot=False,Plotfreq=1,Plotmaxm=0,printy=True,printw=True,plot_delay=0.00000001):
+        '''Uses Sigmoid Activation.'''
         Wcorr=self.W*0
         lw= len(self.W)
         result=[[] for i in range(lw)]
@@ -117,5 +141,53 @@ class model:
           for i in range(lw):
               print('W[%d]=\n'%i,self.W[i],'\n')
         return
+    def trainrelu(self,x,y,iterations,learningrate,plot=False,Plotfreq=1,Plotmaxm=0,printy=True,printw=True,plot_delay=0.00000001):
+        '''Relu Activation for Hidden layers and Sigmoid on final output.'''
+        Wcorr=self.W*0
+        lw= len(self.W)
+        result=[[] for i in range(lw)]
+        #Lsum=[[] for i in range(len(W))]
+        if plot:
+            nnplotter.plotinit()
+        q=lambda z,y:mx(matmul(pad(x,((0,0),(1,0)),
+          'constant',constant_values=1),self.W[z].T),0)if z==0 else (expit(matmul(pad(q(z-1,y),((0,0),(1,0)),
+            'constant',constant_values=1),self.W[z].T)) if (z == y) else mx(matmul(pad(q(z-1,y),((0,0),(1,0)),
+            'constant',constant_values=1),self.W[z].T),0))
+        try:
+            for k in range(iterations):
+                for i in range(lw-1,-1,-1):
+                    result[i]=pad(q(i,lw-1),((0,0),(1,0)),'constant',constant_values=1)
+                for i in range(len(x)):
+                    X=pad(x[i],((1,0)),'constant',constant_values=1)
+                    for j in range(lw-1,-1,-1):
+                        if j==lw-1:
+                            Wcorr[j]=array([(result[j][i]-y[i])*(result[j][i]*(1-result[j][i]))])#(pred - expected)*(derivative of activation)
+                        else:
+                            Wcorr[j]=(matmul(Wcorr[j+1][0][1:],self.W[j+1])*array([(result[j][i]*(1-result[j][i]))]))
+                    for j in range(lw-1,-1,-1):
+                        if j==0:
+                            self.W[0]=self.W[0]-learningrate*delete(matmul(Wcorr[0].T,array([X])),0,0)
+                        else:
+                            self.W[j]=self.W[j]-learningrate*delete(matmul(Wcorr[j].T,array([result[j-1][i]])),0,0)
+                if plot:
+                    if k==0 and Plotmaxm:
+                        figManager = nnplotter.plt.get_current_fig_manager()
+                        figManager.window.showMaximized()
+                    if k%Plotfreq == 0:
+                        nnplotter.ax.clear()
+                        for i in range(lw):
+                            nnplotter.plotweights(self.W[i],i)
+                        nnplotter.ax.text(0,0,s='iteration {}'.format(k))
+                        nnplotter.plt.pause(plot_delay)
+                if printy:
+                    print(self.predictrelu(x))
+                print('iteration : {}'.format(k+1))
+        except KeyboardInterrupt:
+            pass
+        if printw:
+          for i in range(lw):
+              print('W[%d]=\n'%i,self.W[i],'\n')
+        return
+
 
 
