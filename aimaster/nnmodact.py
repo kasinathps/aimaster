@@ -76,8 +76,9 @@ class model:
     def loadmodel(self,filename):
         with open(f"{filename}",'rb') as file:
             return load(file)
-    def train(self,x,y,iterations,learningrate,plot=False,activation="sigmoid",Plotfreq=1,Plotmaxm=0,printy=True,printw=True,plot_delay=0.00000001):
+    def train(self,x,y,iterations,learningrate,plot=False,activation="sigmoid",plotfreq=1,plotmaxm=0,printy=True,printw=True,plot_delay=0.00000001):
         '''activation argument is used to select activation for neural network
+        Specify Activation argument as < activation="sigmoid" > or "relu"
         Over the iterations, this function optimizes the values of all weights
         to reduce output error.
         if printy is set True (default) it prints the output on each iterations,
@@ -91,11 +92,11 @@ class model:
         Adaptive learning rate will be introduced in future.
         '''
         if activation=="sigmoid":
-            self.trainsigmoid(x,y,iterations,learningrate,plot,Plotfreq,Plotmaxm,printy,printw,plot_delay)
+            self.trainsigmoid(x,y,iterations,learningrate,plot,plotfreq,plotmaxm,printy,printw,plot_delay)
         if activation=="relu":
-            self.trainrelu(x,y,iterations,learningrate,plot,Plotfreq,Plotmaxm,printy,printw,plot_delay)
+            self.trainrelu(x,y,iterations,learningrate,plot,plotfreq,plotmaxm,printy,printw,plot_delay)
 
-    def trainsigmoid(self,x,y,iterations,learningrate,plot=False,Plotfreq=1,Plotmaxm=0,printy=True,printw=True,plot_delay=0.00000001):
+    def trainsigmoid(self,x,y,iterations,learningrate,plot=False,plotfreq=1,plotmaxm=0,printy=True,printw=True,plot_delay=0.00000001):
         '''Uses Sigmoid Activation.'''
         Wcorr=self.W*0
         lw= len(self.W)
@@ -123,14 +124,14 @@ class model:
                         else:
                             self.W[j]=self.W[j]-learningrate*delete(matmul(Wcorr[j].T,array([result[j-1][i]])),0,0)
                 if plot:
-                    if k==0 and Plotmaxm:
+                    if k==0 and plotmaxm:
                         figManager = nnplotter.plt.get_current_fig_manager()
                         figManager.window.showMaximized()
-                    if k%Plotfreq == 0:
+                    if k%plotfreq == 0:
                         nnplotter.ax.clear()
                         for i in range(lw):
                             nnplotter.plotweights(self.W[i],i)
-                        nnplotter.ax.text(0,0,s='iteration {}'.format(k))
+                        nnplotter.ax.text(0,-0.25,s='iteration {}'.format(k))
                         nnplotter.plt.pause(plot_delay)
                 if printy:
                     print(self.predict(x))
@@ -141,7 +142,7 @@ class model:
           for i in range(lw):
               print('W[%d]=\n'%i,self.W[i],'\n')
         return
-    def trainrelu(self,x,y,iterations,learningrate,plot=False,Plotfreq=1,Plotmaxm=0,printy=True,printw=True,plot_delay=0.00000001):
+    def trainrelu(self,x,y,iterations,learningrate,plot=False,plotfreq=1,plotmaxm=0,printy=True,printw=True,plot_delay=0.00000001):
         '''Relu Activation for Hidden layers and Sigmoid on final output.'''
         Wcorr=self.W*0
         lw= len(self.W)
@@ -158,26 +159,26 @@ class model:
                 for i in range(lw-1,-1,-1):
                     result[i]=pad(q(i,lw-1),((0,0),(1,0)),'constant',constant_values=1)
                 for i in range(len(x)):
-                    X=pad(x[i],((1,0)),'constant',constant_values=1)
+                    X=pad(x[i],((1,0)),'constant',constant_values=1)#input bias
                     for j in range(lw-1,-1,-1):
                         if j==lw-1:
-                            Wcorr[j]=array([(result[j][i]-y[i])*(result[j][i]*(1-result[j][i]))])#(pred - expected)*(derivative of activation)
+                            Wcorr[j]=array([(result[j][i]-y[i])*(result[j][i]*(1-result[j][i]))])
                         else:
-                            Wcorr[j]=(matmul(Wcorr[j+1][0][1:],self.W[j+1])*array([(result[j][i]*(1-result[j][i]))]))
+                            Wcorr[j]=(matmul(Wcorr[j+1][0][1:],self.W[j+1])*array([(result[j][i] >0)*1]))
                     for j in range(lw-1,-1,-1):
                         if j==0:
                             self.W[0]=self.W[0]-learningrate*delete(matmul(Wcorr[0].T,array([X])),0,0)
                         else:
                             self.W[j]=self.W[j]-learningrate*delete(matmul(Wcorr[j].T,array([result[j-1][i]])),0,0)
                 if plot:
-                    if k==0 and Plotmaxm:
+                    if k==0 and plotmaxm:
                         figManager = nnplotter.plt.get_current_fig_manager()
                         figManager.window.showMaximized()
-                    if k%Plotfreq == 0:
+                    if k%plotfreq == 0:
                         nnplotter.ax.clear()
                         for i in range(lw):
                             nnplotter.plotweights(self.W[i],i)
-                        nnplotter.ax.text(0,0,s='iteration {}'.format(k))
+                        nnplotter.ax.text(0,-0.25,s='iteration {}'.format(k))
                         nnplotter.plt.pause(plot_delay)
                 if printy:
                     print(self.predictrelu(x))
