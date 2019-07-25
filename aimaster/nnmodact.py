@@ -62,56 +62,60 @@ class model:
             return load(file)
 
     def trainsigmoid(self,x,y,iterations,learningrate=0.1,plot=False,Plotfreq=1,Plotmaxm=0,printy=True,printw=True,plot_delay=0.00000001):
-      '''over the iterations, this function optimizes the values of all weights
-      to reduce output error.
-      if printy is set True (default) it prints the output on each iterations,
-      if printw is set True (default) it prints the weight matrices on the 
-      end of iterations 
-      
-      NOTE: learning rate is set default to 0.1 which sometimes is
-      morethan required (result: gradient descent will not converge) or otherwise
-      less than required (result: slow training). So feel free to experiment with 
-      different values as this module is for basic understanding and experiments :)
-      '''
-      Wcorr=self.W*0
-      lw= len(self.W)
-      result=[[] for i in range(lw)]
-      #Lsum=[[] for i in range(len(W))]
-      if plot:
-          nnplotter.plotinit()
-      p=lambda z:expit(matmul(pad(x,((0,0),(1,0)),
-            'constant',constant_values=1),self.W[z].T))if z==0 else expit(matmul(
-                pad(p(z-1),((0,0),(1,0)),'constant',constant_values=1),self.W[z].T))
-      for k in range(iterations):
-          for i in range(lw-1,-1,-1):
-              result[i]=pad(p(i),((0,0),(1,0)),'constant',constant_values=1)
-          for i in range(len(x)):
-              X=pad(x[i],((1,0)),'constant',constant_values=1)
-              for j in range(lw-1,-1,-1):
-                  if j==lw-1:
-                      Wcorr[j]=array([(result[j][i]-y[i])*(result[j][i]*(1-result[j][i]))])#(pred - expected)*(derivative of activation)
-                  else:
-                      Wcorr[j]=(matmul(Wcorr[j+1][0][1:],self.W[j+1])*array([(result[j][i]*(1-result[j][i]))]))
-              for j in range(lw-1,-1,-1):
-                  if j==0:
-                      self.W[0]=self.W[0]-learningrate*delete(matmul(Wcorr[0].T,array([X])),0,0)
-                  else:
-                      self.W[j]=self.W[j]-learningrate*delete(matmul(Wcorr[j].T,array([result[j-1][i]])),0,0)
-          if plot:
-              if k==0 and Plotmaxm:
-                  figManager = nnplotter.plt.get_current_fig_manager()
-                  figManager.window.showMaximized()
-              if k%Plotfreq == 0:
-                  nnplotter.ax.clear()
-                  for i in range(lw):
-                      nnplotter.plotweights(self.W[i],i)
-                  nnplotter.ax.text(0,0,s='iteration {}'.format(k))
-                  nnplotter.plt.pause(plot_delay)
-          if printy:
-              print(self.predict(x))
-          print('iteration : {}'.format(k+1))
-      if printw:
-        for i in range(lw):
-            print('W[%d]=\n'%i,self.W[i],'\n')
-      return
+        '''over the iterations, this function optimizes the values of all weights
+        to reduce output error.
+        if printy is set True (default) it prints the output on each iterations,
+        if printw is set True (default) it prints the weight matrices on the 
+        end of iterations 
+        
+        NOTE: learning rate is set default to 0.1 which sometimes is
+        morethan required (result: gradient descent will not converge) or otherwise
+        less than required (result: slow training). So feel free to experiment with 
+        different values as this module is for basic understanding and experiments :)
+        '''
+        Wcorr=self.W*0
+        lw= len(self.W)
+        result=[[] for i in range(lw)]
+        #Lsum=[[] for i in range(len(W))]
+        if plot:
+            nnplotter.plotinit()
+        p=lambda z:expit(matmul(pad(x,((0,0),(1,0)),
+              'constant',constant_values=1),self.W[z].T))if z==0 else expit(matmul(
+                  pad(p(z-1),((0,0),(1,0)),'constant',constant_values=1),self.W[z].T))
+        try:
+            for k in range(iterations):
+                for i in range(lw-1,-1,-1):
+                    result[i]=pad(p(i),((0,0),(1,0)),'constant',constant_values=1)
+                for i in range(len(x)):
+                    X=pad(x[i],((1,0)),'constant',constant_values=1)
+                    for j in range(lw-1,-1,-1):
+                        if j==lw-1:
+                            Wcorr[j]=array([(result[j][i]-y[i])*(result[j][i]*(1-result[j][i]))])#(pred - expected)*(derivative of activation)
+                        else:
+                            Wcorr[j]=(matmul(Wcorr[j+1][0][1:],self.W[j+1])*array([(result[j][i]*(1-result[j][i]))]))
+                    for j in range(lw-1,-1,-1):
+                        if j==0:
+                            self.W[0]=self.W[0]-learningrate*delete(matmul(Wcorr[0].T,array([X])),0,0)
+                        else:
+                            self.W[j]=self.W[j]-learningrate*delete(matmul(Wcorr[j].T,array([result[j-1][i]])),0,0)
+                if plot:
+                    if k==0 and Plotmaxm:
+                        figManager = nnplotter.plt.get_current_fig_manager()
+                        figManager.window.showMaximized()
+                    if k%Plotfreq == 0:
+                        nnplotter.ax.clear()
+                        for i in range(lw):
+                            nnplotter.plotweights(self.W[i],i)
+                        nnplotter.ax.text(0,0,s='iteration {}'.format(k))
+                        nnplotter.plt.pause(plot_delay)
+                if printy:
+                    print(self.predict(x))
+                print('iteration : {}'.format(k+1))
+        except KeyboardInterrupt:
+            pass
+        if printw:
+          for i in range(lw):
+              print('W[%d]=\n'%i,self.W[i],'\n')
+        return
+
 
