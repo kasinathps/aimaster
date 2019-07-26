@@ -10,7 +10,7 @@ nn
 - Model Class with Initialization.
 - Neural Network visualization.
 - Could specify Activation ("relu" or "sigmoid".Other activations are in development)
-- Live training with visualization. ("Pretty Slow 😁")
+- Live training with visualization. ("Pretty Slow 😁").Training without visualization prefered(fast).
 - Saving and Loading Models. (Using pickle)
 
 
