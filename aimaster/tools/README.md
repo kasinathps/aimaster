@@ -7,4 +7,4 @@ Contains all aimaster special tools.
 -----------
   
   Used to visualize the Neural Network (even during training).  
-  Can be initiaded by calling weights(True).  
+  Can be initiated by calling ```weights(True).```  
