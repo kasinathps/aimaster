@@ -1,5 +1,5 @@
 import numpy as np
-from numpy import array, matmul, pad, delete
+from numpy import array, matmul, pad, delete,sqrt
 from numpy import maximum as mx
 from numpy.random import randn,rand
 from scipy.special import expit
@@ -24,7 +24,7 @@ class model:
             return None
         self.arch=architecture
         if type=="relu":
-            self.W=array([rand(j,i+1) for i,j in zip(architecture[0::1],
+            self.W=array([rand(j,i+1)*sqrt(2/(i+1)) for i,j in zip(architecture[0::1],
                 architecture[1::1])])
         else:   
             self.W=array([randn(j,i+1) for i,j in zip(architecture[0::1],
@@ -189,6 +189,7 @@ class model:
         if printw:
           for i in range(lw):
               print('W[%d]=\n'%i,self.W[i],'\n')
+        nnplotter.plt.close()
         return
     def processplotter(self,cconn,cconn2,cconn3):
         nnplotter.plotinit()
