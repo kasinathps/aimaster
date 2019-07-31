@@ -23,12 +23,11 @@ class model:
                 counting bias) and an output layer of 1 neuron""")
             return None
         self.arch=architecture
-        self.W=array([randn(j,i+1)*np.sqrt(2/(i+1)) for i,j in zip(architecture[0::1],
+        self.W=array([randn(j,i+1)*np.sqrt(1/(i+1)) for i,j in zip(architecture[0::1],
             architecture[1::1])])
         for i in range(len(self.W)):
             print('W[%d]=\n'%i,self.W[i],'\n')
         return
-
     def weights(self,plot=False):
         '''prints out the weight matrixes w1 and w2'''
         if plot:
@@ -39,7 +38,6 @@ class model:
         for i in range(len(self.W)):
             print('W[%d]=\n'%i,self.W[i],'\n')
         return
-
     def predict(self,x):
         '''returns the network output of a specific input specifically
             NOTE:
@@ -48,29 +46,26 @@ class model:
                 Example: [1 , 1] has a shape of (2,) which is not accepted yet
                 but [[1, 1]] has a shape of (1,2) which is desired if single input
                 You know what you are doing :) '''
-        l=len(self.W)-1
-        q=lambda z,y:mx(matmul(pad(x,((0,0),(1,0)),
-          'constant',constant_values=1),self.W[z].T),0)if z==0 else (expit(matmul(pad(q(z-1,y),((0,0),(1,0)),
-            'constant',constant_values=1),self.W[z].T)) if (z == y) else mx(matmul(pad(q(z-1,y),((0,0),(1,0)),
-            'constant',constant_values=1),self.W[z].T),0))
-        return q(l,l)
-
+        p=lambda z:expit(matmul(pad(x,((0,0),(1,0)),
+            'constant',constant_values=1),self.W[z].T))if z==0 else expit(matmul(
+                pad(p(z-1),((0,0),(1,0)),
+                       'constant',constant_values=1),self.W[z].T))
+        return p(len(self.W)-1)
     def savemodel(self,filename):
         """Saves the model in pickle format"""
         with open(f"{filename}",'wb') as file:
             dump(self,file)
-
     def loadmodel(self,filename):
         with open(f"{filename}",'rb') as file:
             return load(file)
     def train(self,x,y,iterations,learningrate,plot=False,printy=True,printw=True,vmode="queue"):
-        '''Relu Activation for Hidden layers and Sigmoid on final output.'''
+        '''Uses Sigmoid Activation.'''
         if plot:
             if vmode=="queue":
                 event_q = Queue()
                 send_q = Queue()
-                p = Process(target=self.processplotterqueue,args=(event_q,send_q,))
-                p.start()
+                q = Process(target=self.processplotterqueue,args=(event_q,send_q,))
+                q.start()
                 send_q.get(block=True , timeout=3)#checking startsignal
             elif vmode=="pipe":
                 cconn,pconn = Pipe(duplex = False)
@@ -84,23 +79,20 @@ class model:
         lw= len(self.W)
         result=[[] for i in range(lw)]
         #Lsum=[[] for i in range(len(W))]
-        if plot:
-            nnplotter.plotinit()
-        q=lambda z,y:mx(matmul(pad(x,((0,0),(1,0)),
-          'constant',constant_values=1),self.W[z].T),0)if z==0 else (expit(matmul(pad(q(z-1,y),((0,0),(1,0)),
-            'constant',constant_values=1),self.W[z].T)) if (z == y) else mx(matmul(pad(q(z-1,y),((0,0),(1,0)),
-            'constant',constant_values=1),self.W[z].T),0))
+        p=lambda z:expit(matmul(pad(x,((0,0),(1,0)),
+              'constant',constant_values=1),self.W[z].T))if z==0 else expit(matmul(
+                  pad(p(z-1),((0,0),(1,0)),'constant',constant_values=1),self.W[z].T))
         try:
             for k in range(iterations):
                 for i in range(lw-1,-1,-1):
-                    result[i]=pad(q(i,lw-1),((0,0),(1,0)),'constant',constant_values=1)
+                    result[i]=pad(p(i),((0,0),(1,0)),'constant',constant_values=1)
                 for i in range(len(x)):
-                    X=pad(x[i],((1,0)),'constant',constant_values=1)#input bias
+                    X=pad(x[i],((1,0)),'constant',constant_values=1)
                     for j in range(lw-1,-1,-1):
                         if j==lw-1:
-                            Wcorr[j]=array([(result[j][i]-y[i])*(result[j][i]*(1-result[j][i]))])
+                            Wcorr[j]=array([(result[j][i]-y[i])*(result[j][i]*(1-result[j][i]))])#(pred - expected)*(derivative of activation)
                         else:
-                            Wcorr[j]=(matmul(Wcorr[j+1][0][1:],self.W[j+1])*array([(result[j][i] >0)*1]))
+                            Wcorr[j]=(matmul(Wcorr[j+1][0][1:],self.W[j+1])*array([(result[j][i]*(1-result[j][i]))]))
                     for j in range(lw-1,-1,-1):
                         if j==0:
                             self.W[0]=self.W[0]-learningrate*delete(matmul(Wcorr[0].T,array([X])),0,0)
@@ -128,10 +120,8 @@ class model:
               print('W[%d]=\n'%i,self.W[i],'\n')
         if vmode == "queue":
             event_q.put("close")
-            nnplotter.plt.close()
-            p.join()
+            q.join()
         return
-
     def processplotterqueue(self,event_q,send_q):
         nnplotter.plotinit()
         send_q.put("Startsignal")

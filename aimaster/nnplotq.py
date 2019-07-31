@@ -6,7 +6,6 @@ from scipy.special import expit
 from aimaster.tools import nnplotter
 from multiprocessing import Process, Queue, Pipe
 from pickle import dump, load
-from time import sleep
 class model:
     def __init__(self, architecture=[], type = "sigmoid"):
         if not architecture :
@@ -108,7 +107,7 @@ class model:
             send_q=Queue()
             p=Process(target=self.processplotter,args=(event_q,send_q,))
             p.start()
-            sleep(2)
+            send_q.get(block=True , timeout=3)#checking startsignal
         Wcorr=self.W*0
         lw= len(self.W)
         result=[[] for i in range(lw)]
@@ -157,7 +156,7 @@ class model:
             send_q=Queue()
             p=Process(target=self.processplotter,args=(event_q,send_q,))
             p.start()
-            sleep(2)
+            send_q.get(block=True , timeout=3)#checking startsignal
         Wcorr=self.W*0
         lw= len(self.W)
         result=[[] for i in range(lw)]
@@ -204,6 +203,7 @@ class model:
         return
     def processplotter(self,event_q,send_q):
         nnplotter.plotinit()
+        send_q.put("Startsignal")
         send_q.put("Send")
         while True:
             nnplotter.ax.clear()
