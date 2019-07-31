@@ -1,13 +1,25 @@
-import numpy as np
-from numpy import array, matmul, pad, delete
+from numpy import array, matmul, pad, delete, sqrt , mean
 from numpy import maximum as mx
-from numpy.random import randn
+from numpy.random import randn , seed
 from scipy.special import expit
 from aimaster.tools import nnplotter
 from pickle import dump, load
+from multiprocessing import Process, Queue, Pipe
 
 class model:
-    def __init__(self, architecture=[]):
+    def __init__(self, architecture=[], mtype = "sigmoid",staticinitialization=0):
+        """ Creates a Neural Network model with given architecture and activation type.
+            architecture = [input neurons,hidden layer neurons, output neurons]
+                Example :
+                    m1 = model([2,3,3,1]) gives nn with 2 inputs plus a bias,
+                    two hidden layers with 3 neurons each with additional bias,
+                    and connected to one output neuron
+            mtype : modeltype   "relu" and "sigmoid" are supported till date.
+                other activation models are on development
+            staticinitialization :   is fed into numpy.random.seed() to generate same 
+                model parameters over different machines or different times"""
+        if staticinitialization:
+            seed(staticinitialization)
         if not architecture :
             print("""architecture is not given as input.
                 Assuming creating a dummy model to be used for loading a saved model...
@@ -21,9 +33,19 @@ class model:
                 2 neurons, two hidden layers with 3 neurons each(without 
                 counting bias) and an output layer of 1 neuron""")
             return None
-        self.arch=architecture
-        self.W=array([randn(j,i+1) for i,j in zip(architecture[0::1],
-            architecture[1::1])])
+        self.architecture=architecture
+        if mtype=="relu":
+            self.W=array([randn(j,i+1)*sqrt(2/(i+1)) for i,j in zip(architecture[0::1],
+                architecture[1::1])])
+            self.currentmodeltype="relu"
+        elif mtype == "sigmoid":   
+            self.W=array([randn(j,i+1)*sqrt(1/(i+1)) for i,j in zip(architecture[0::1],
+                architecture[1::1])])
+            self.currentmodeltype="sigmoid"
+        else:
+            print("model type is unknown or not set properly")
+            return -1
+        print(f"\nModel initialized \n\n \t Architecture = {architecture} \n \t Model type = {self.currentmodeltype}\n\n Weights :")
         for i in range(len(self.W)):
             print('W[%d]=\n'%i,self.W[i],'\n')
         return
@@ -54,7 +76,7 @@ class model:
             'constant',constant_values=1),self.W[z].T),0))
         return q(l,l)
 
-    def predict(self,x):
+    def predictsigmoid(self,x):
         '''returns the network output of a specific input specifically
             NOTE:
                 if a single input is given to predict funcion it must be of shape
@@ -68,6 +90,14 @@ class model:
                        'constant',constant_values=1),self.W[z].T))
         return p(len(self.W)-1)
 
+    def predict(self,x ):
+        if self.currentmodeltype == "relu":
+            return(self.predictrelu(x))
+        elif self.currentmodeltype == "sigmoid":
+            return(self.predictsigmoid(x))
+        else:
+            print("currentmodeltype is unknown or not set properly")
+
     def savemodel(self,filename):
         """Saves the model in pickle format"""
         with open(f"{filename}",'wb') as file:
@@ -76,7 +106,8 @@ class model:
     def loadmodel(self,filename):
         with open(f"{filename}",'rb') as file:
             return load(file)
-    def train(self,x,y,iterations,learningrate,plot=False,activation="sigmoid",plotfreq=1,plotmaxm=0,printy=True,printw=True,plot_delay=0.00000001):
+
+    def train(self,x,y,iterations,learningrate,plot=False,printy=True,printw=True,vmode="queue"):
         '''activation argument is used to select activation for neural network
         Specify Activation argument as < activation="sigmoid" > or "relu"
         Over the iterations, this function optimizes the values of all weights
@@ -91,19 +122,34 @@ class model:
         different values as this module is for basic understanding and experiments :)
         Adaptive learning rate will be introduced in future.
         '''
-        if activation=="sigmoid":
-            self.trainsigmoid(x,y,iterations,learningrate,plot,plotfreq,plotmaxm,printy,printw,plot_delay)
-        if activation=="relu":
-            self.trainrelu(x,y,iterations,learningrate,plot,plotfreq,plotmaxm,printy,printw,plot_delay)
+        if self.currentmodeltype=="sigmoid":
+            self.trainsigmoid(x,y,iterations,learningrate,plot,printy,printw,vmode)
+        elif self.currentmodeltype=="relu":
+            self.trainrelu(x,y,iterations,learningrate,plot,printy,printw,vmode)
+        else:
+            print("Either currentmodeltype not set or corrupt.check again")
 
-    def trainsigmoid(self,x,y,iterations,learningrate,plot=False,plotfreq=1,plotmaxm=0,printy=True,printw=True,plot_delay=0.00000001):
+    def trainsigmoid(self,x,y,iterations,learningrate,plot=False,printy=True,printw=True,vmode="queue"):
         '''Uses Sigmoid Activation.'''
+        if plot:
+            if vmode=="queue":
+                event_q = Queue()
+                send_q = Queue()
+                q = Process(target=self.processplotterqueue,args=(event_q,send_q,))
+                q.start()
+                send_q.get(block=True , timeout=3)#checking startsignal
+            elif vmode=="pipe":
+                cconn,pconn = Pipe(duplex = False)
+                pconn2,cconn2 = Pipe(duplex = False)
+                cconn3,pconn3 = Pipe(duplex = False)
+                Process(target=self.processplotterpipe,args=(cconn,cconn2,cconn3,)).start()
+            else:
+                print("visualization mode unknown. Turning off plotting")
+                plot=False
         Wcorr=self.W*0
         lw= len(self.W)
         result=[[] for i in range(lw)]
         #Lsum=[[] for i in range(len(W))]
-        if plot:
-            nnplotter.plotinit()
         p=lambda z:expit(matmul(pad(x,((0,0),(1,0)),
               'constant',constant_values=1),self.W[z].T))if z==0 else expit(matmul(
                   pad(p(z-1),((0,0),(1,0)),'constant',constant_values=1),self.W[z].T))
@@ -123,27 +169,47 @@ class model:
                             self.W[0]=self.W[0]-learningrate*delete(matmul(Wcorr[0].T,array([X])),0,0)
                         else:
                             self.W[j]=self.W[j]-learningrate*delete(matmul(Wcorr[j].T,array([result[j-1][i]])),0,0)
+                Loss = (mean((self.predictsigmoid(x)-y)**2))/len(x)
                 if plot:
-                    if k==0 and plotmaxm:
-                        figManager = nnplotter.plt.get_current_fig_manager()
-                        figManager.window.showMaximized()
-                    if k%plotfreq == 0:
-                        nnplotter.ax.clear()
-                        for i in range(lw):
-                            nnplotter.plotweights(self.W[i],i)
-                        nnplotter.ax.text(0,-0.25,s='iteration {}'.format(k))
-                        nnplotter.plt.pause(plot_delay)
+                    if vmode == "queue":
+                        try:
+                            if send_q.get_nowait()=="Send" and k!=iterations-1:
+                                event_q.put([self.W,k,Loss])
+                        except:
+                            pass
+                    else:
+                        if pconn2.recv() == "Send":
+                            pconn.send(self.W)
+                            pconn3.send([k,Loss])
                 if printy:
-                    print(self.predict(x))
+                    print(self.predictsigmoid(x))
                 print('iteration : {}'.format(k+1))
         except KeyboardInterrupt:
             pass
         if printw:
           for i in range(lw):
               print('W[%d]=\n'%i,self.W[i],'\n')
+        if vmode == "queue":
+            event_q.put("close")
+            q.join()
         return
-    def trainrelu(self,x,y,iterations,learningrate,plot=False,plotfreq=1,plotmaxm=0,printy=True,printw=True,plot_delay=0.00000001):
+    def trainrelu(self,x,y,iterations,learningrate,plot=False,printy=True,printw=True,vmode="queue"):
         '''Relu Activation for Hidden layers and Sigmoid on final output.'''
+        if plot:
+            if vmode=="queue":
+                event_q = Queue()
+                send_q = Queue()
+                p = Process(target=self.processplotterqueue,args=(event_q,send_q,))
+                p.start()
+                send_q.get(block=True , timeout=3)#checking startsignal
+            elif vmode=="pipe":
+                cconn,pconn = Pipe(duplex = False)
+                pconn2,cconn2 = Pipe(duplex = False)
+                cconn3,pconn3 = Pipe(duplex = False)
+                Process(target=self.processplotterpipe,args=(cconn,cconn2,cconn3,)).start()
+            else:
+                print("visualization mode unknown. Turning off plotting")
+                plot=False
         Wcorr=self.W*0
         lw= len(self.W)
         result=[[] for i in range(lw)]
@@ -170,16 +236,18 @@ class model:
                             self.W[0]=self.W[0]-learningrate*delete(matmul(Wcorr[0].T,array([X])),0,0)
                         else:
                             self.W[j]=self.W[j]-learningrate*delete(matmul(Wcorr[j].T,array([result[j-1][i]])),0,0)
+                Loss = (mean((self.predictrelu(x)-y)**2))/len(x)
                 if plot:
-                    if k==0 and plotmaxm:
-                        figManager = nnplotter.plt.get_current_fig_manager()
-                        figManager.window.showMaximized()
-                    if k%plotfreq == 0:
-                        nnplotter.ax.clear()
-                        for i in range(lw):
-                            nnplotter.plotweights(self.W[i],i)
-                        nnplotter.ax.text(0,-0.25,s='iteration {}'.format(k))
-                        nnplotter.plt.pause(plot_delay)
+                    if vmode == "queue":
+                        try:
+                            if send_q.get_nowait()=="Send" and k!=iterations-1:
+                                event_q.put([self.W,k,Loss])
+                        except:
+                            pass
+                    else:
+                        if pconn2.recv() == "Send":
+                            pconn.send(self.W)
+                            pconn3.send([k,Loss])
                 if printy:
                     print(self.predictrelu(x))
                 print('iteration : {}'.format(k+1))
@@ -188,7 +256,54 @@ class model:
         if printw:
           for i in range(lw):
               print('W[%d]=\n'%i,self.W[i],'\n')
+        if vmode == "queue":
+            event_q.put("close")
+            nnplotter.plt.close()
+            p.join()
         return
-
-
-
+    def processplotterqueue(self,event_q,send_q):
+        nnplotter.plotinit()
+        send_q.put("Startsignal")
+        send_q.put("Send")
+        while True:
+            nnplotter.ax.clear()
+            tmp=event_q.get(block=True)
+            if type(tmp)==str and tmp == "close":
+                event_q.close()
+                send_q.close()
+                nnplotter.plt.close()
+                break
+            else:
+                #print("Queue Received")#for debugging purposes
+                for i in range(len(tmp[0])):
+                    nnplotter.plotweights(tmp[0][i],i)
+                nnplotter.ax.text(0,-0.25,s="iteration {: <5} Loss = {: <10}".format(tmp[1],tmp[2]))
+                nnplotter.plt.pause(0.00000001)
+                send_q.put("Send")
+    def processplotterpipe(self,cconn,cconn2,cconn3):
+        nnplotter.plotinit()
+        cconn2.send("Send")
+        while True:
+            nnplotter.ax.clear()
+            try:
+                tmp=cconn.recv()
+                cconn2.send("")
+                k=cconn3.recv()
+            except:
+                cconn.close()
+                cconn2.close()
+                cconn3.close()
+                nnplotter.plt.close()
+                break
+            for i in range(len(tmp)):
+                nnplotter.plotweights(tmp[i],i)
+            nnplotter.ax.text(0,-0.25,s="iteration {: <5} Loss = {: <10}".format(str(k[0]),str(k[1])))
+            nnplotter.plt.pause(0.00000001)
+            try:
+                cconn2.send("Send")
+            except:
+                cconn.close()
+                cconn2.close()
+                cconn3.close()
+                nnplotter.plt.close()
+                break
