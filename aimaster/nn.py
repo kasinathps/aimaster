@@ -48,7 +48,7 @@ class model:
         print(f"\nModel initialized \n\n \t Architecture = {architecture} \n \t Model type = {self.currentmodeltype}\n\n Weights :")
         for i in range(len(self.W)):
             print('W[%d]=\n'%i,self.W[i],'\n')
-        return
+        return 0
 
     def weights(self,plot=False):
         '''prints out the weight matrixes w1 and w2'''
@@ -59,7 +59,7 @@ class model:
             nnplotter.plt.show()
         for i in range(len(self.W)):
             print('W[%d]=\n'%i,self.W[i],'\n')
-        return
+        return 0
 
     def predictrelu(self,x):
         '''returns the network output of a specific input specifically
@@ -97,6 +97,7 @@ class model:
             return(self.predictsigmoid(x))
         else:
             print("currentmodeltype is unknown or not set properly")
+            return None
 
     def savemodel(self,filename):
         """Saves the model in pickle format"""
@@ -128,6 +129,7 @@ class model:
             self.trainrelu(x,y,iterations,learningrate,plot,printy,printw,vmode)
         else:
             print("Either currentmodeltype not set or corrupt.check again")
+            return None
 
     def trainsigmoid(self,x,y,iterations,learningrate,plot=False,printy=True,printw=True,vmode="queue"):
         '''Uses Sigmoid Activation.'''
@@ -192,7 +194,7 @@ class model:
         if vmode == "queue":
             event_q.put("close")
             q.join()
-        return
+        return 0
     def trainrelu(self,x,y,iterations,learningrate,plot=False,printy=True,printw=True,vmode="queue"):
         '''Relu Activation for Hidden layers and Sigmoid on final output.'''
         if plot:
@@ -260,7 +262,7 @@ class model:
             event_q.put("close")
             nnplotter.plt.close()
             p.join()
-        return
+        return 0
     def processplotterqueue(self,event_q,send_q):
         nnplotter.plotinit()
         send_q.put("Startsignal")
