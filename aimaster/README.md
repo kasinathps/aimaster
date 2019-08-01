@@ -3,16 +3,22 @@ Contents:
 nn
 --
 
-### nn		:: Always updated to the Latest Neural Network Model of aimaster.
+### nn		:: Always updated to the Latest Neural Network Features of aimaster.
 
 #### Current Features of nn::
 
 - Model Class with Initialization.
 - Neural Network visualization.
 - Could specify Activation ("relu" or "sigmoid".Other activations are in development)
-- Live training with visualization. ("Pretty Slow 😁").Training without visualization prefered(fast).
+- Live training with visualization.
+- Visualization is now a subprocess. Implementation with pipe (plots every iteration, and is a little slow😁) or Queue (Plots when the subprocess could while Main process will keep running very fast) are available.Visualization with Queue is default and is as fast as without visualization.
 - Saving and Loading Models. (Using pickle)
 
+### nnrelu ::  
+ Nerural Network with relu activation only.(Except for output layer {sigmoid})  
+
+### nnsigmoid ::  
+ Neural Network with sigmoid activation only.
 
 ### nn1hlnb :  
  Neural Network with '1' Hidden Layer and No Bias.  
