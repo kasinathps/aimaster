@@ -1,5 +1,5 @@
 import numpy as np
-from numpy import array, matmul, pad, delete, sqrt
+from numpy import array, matmul, pad, delete, sqrt, tanh
 from numpy import maximum as mx
 from numpy.random import randn,rand
 from scipy.special import expit
@@ -47,8 +47,8 @@ class model:
                 Example: [1 , 1] has a shape of (2,) which is not accepted yet
                 but [[1, 1]] has a shape of (1,2) which is desired if single input
                 You know what you are doing :) '''
-        p=lambda z:expit(matmul(pad(x,((0,0),(1,0)),
-            'constant',constant_values=1),self.W[z].T))if z==0 else expit(matmul(
+        p=lambda z:tanh(matmul(pad(x,((0,0),(1,0)),
+            'constant',constant_values=1),self.W[z].T))if z==0 else tanh(matmul(
                 pad(p(z-1),((0,0),(1,0)),
                        'constant',constant_values=1),self.W[z].T))
         return p(len(self.W)-1)
@@ -60,7 +60,7 @@ class model:
         with open(f"{filename}",'rb') as file:
             return load(file)
     def train(self,x,y,iterations,learningrate,plot=False,printy=True,printw=True,vmode="queue"):
-        '''Uses Sigmoid Activation.'''
+        '''Uses tanh Activation.'''
         if plot:
             if vmode=="queue":
                 event_q = Queue()
@@ -80,8 +80,8 @@ class model:
         lw= len(self.W)
         result=[[] for i in range(lw)]
         #Lsum=[[] for i in range(len(W))]
-        p=lambda z:expit(matmul(pad(x,((0,0),(1,0)),
-              'constant',constant_values=1),self.W[z].T))if z==0 else expit(matmul(
+        p=lambda z:tanh(matmul(pad(x,((0,0),(1,0)),
+              'constant',constant_values=1),self.W[z].T))if z==0 else tanh(matmul(
                   pad(p(z-1),((0,0),(1,0)),'constant',constant_values=1),self.W[z].T))
         try:
             for k in range(iterations):
@@ -91,9 +91,9 @@ class model:
                     X=pad(x[i],((1,0)),'constant',constant_values=1)
                     for j in range(lw-1,-1,-1):
                         if j==lw-1:
-                            Wcorr[j]=array([(result[j][i]-y[i])*(result[j][i]*(1-result[j][i]))])#(pred - expected)*(derivative of activation)
+                            Wcorr[j]=array([(result[j][i]-y[i])*(1-(result[j][i])**2)])#(pred - expected)*(derivative of activation)
                         else:
-                            Wcorr[j]=(matmul(Wcorr[j+1][0][1:],self.W[j+1])*array([(result[j][i]*(1-result[j][i]))]))
+                            Wcorr[j]=(matmul(Wcorr[j+1][0][1:],self.W[j+1])*array([(1-(result[j][i])**2)]))
                     for j in range(lw-1,-1,-1):
                         if j==0:
                             self.W[0]=self.W[0]-learningrate*delete(matmul(Wcorr[0].T,array([X])),0,0)

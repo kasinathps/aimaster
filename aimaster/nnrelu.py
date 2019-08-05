@@ -26,6 +26,7 @@ class model:
         self.W=array([randn(j,i+1)*np.sqrt(2/(i+1)) for i,j in zip(architecture[0::1],
             architecture[1::1])])
         for i in range(len(self.W)):
+            self.W[i][:,0]=0
             print('W[%d]=\n'%i,self.W[i],'\n')
         return
 

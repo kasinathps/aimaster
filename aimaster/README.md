@@ -9,16 +9,19 @@ nn
 
 - Model Class with Initialization.
 - Neural Network visualization.
-- Could specify Activation ("relu" or "sigmoid".Other activations are in development)
+- Could specify Activation ("relu", "sigmoid" or "tanh").
 - Live training with visualization.
-- Visualization is now a subprocess. Implementation with pipe (plots every iteration, and is a little slow😁) or Queue (Plots when the subprocess could while Main process will keep running very fast) are available.Visualization with Queue is default and is as fast as without visualization.
+- Visualization is now a subprocess. Implementation with pipe (plots every iteration, hence a little slow😁) or Queue (Plots when the subprocess could while Main process will keep running very fast) are available.Visualization with Queue is default and is as fast as without visualization.
 - Saving and Loading Models. (Using pickle)
 
 ### nnrelu ::  
  Nerural Network with relu activation only.(Except for output layer {sigmoid})  
 
 ### nnsigmoid ::  
- Neural Network with sigmoid activation only.
+ Neural Network with sigmoid activation only.  
+
+### nntanh ::  
+ Neural Network with tanh activation only.
 
 ### nn1hlnb :  
  Neural Network with '1' Hidden Layer and No Bias.  
