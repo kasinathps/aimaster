@@ -20,4 +20,4 @@ def plot(p,parameter,weight=1):
 
 def plotweights(w,parameter):
     for i in np.indices(w.shape).reshape(2,w.shape[0]*w.shape[1]).T:
-        plot(i,parameter,w[tuple(i)])
+        plot(i+(1,0),parameter,w[tuple(i)])
