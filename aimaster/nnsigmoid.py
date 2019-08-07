@@ -119,7 +119,7 @@ class model:
         if printw:
           for i in range(lw):
               print('W[%d]=\n'%i,self.W[i],'\n')
-        if vmode == "queue":
+        if plot and vmode == "queue":
             event_q.put("close")
             q.join()
         return

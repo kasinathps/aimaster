@@ -8,7 +8,7 @@ setuptools.setup(
   author_email='kasinathps@gmail.com',
   packages=setuptools.find_packages(),
   install_requires=['numpy', 'scipy', 'matplotlib'],
-  version='2.3.0',
+  version='2.3.1',
   license='MIT',
   description='Artificial Neural Network learning tools',
   long_description=open('README.md').read(),
