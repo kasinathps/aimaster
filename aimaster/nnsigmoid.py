@@ -1,5 +1,5 @@
 import numpy as np
-from numpy import array, matmul, pad, delete, sqrt
+from numpy import array, matmul, pad, delete, sqrt, mean, add
 from numpy import maximum as mx
 from numpy.random import randn,rand
 from scipy.special import expit
@@ -78,6 +78,9 @@ class model:
                 plot=False
         Wcorr=self.W*0
         lw= len(self.W)
+        lx=len(x)-1
+        tmp=Wcorr
+        boostcounter = abs(y-self.predict(x)).argmax()
         result=[[] for i in range(lw)]
         #Lsum=[[] for i in range(len(W))]
         p=lambda z:expit(matmul(pad(x,((0,0),(1,0)),
@@ -88,18 +91,35 @@ class model:
                 for i in range(lw-1,-1,-1):
                     result[i]=pad(p(i),((0,0),(1,0)),'constant',constant_values=1)
                 for i in range(len(x)):
+                    boostcounter = abs(y-self.predict(x)).argmax()
+                    #print ('boostcounter',boostcounter)
                     X=pad(x[i],((1,0)),'constant',constant_values=1)
                     for j in range(lw-1,-1,-1):
                         if j==lw-1:
                             Wcorr[j]=array([(result[j][i]-y[i])*(result[j][i]*(1-result[j][i]))])#(pred - expected)*(derivative of activation)
                         else:
                             Wcorr[j]=(matmul(Wcorr[j+1][0][1:],self.W[j+1])*array([(result[j][i]*(1-result[j][i]))]))
+                    #print ( "Wcorr", Wcorr)
+                    tmp=tmp+Wcorr
+                    if i == boostcounter:
+                        tmp=Wcorr
+                    if(any([abs(subw.max()) > 0.5 for subw in tmp])):
+                        tmp = Wcorr
+                    #print ("tmp",tmp)
+                #Wcorr=tmp
+                #tmp=0
                     for j in range(lw-1,-1,-1):
                         if j==0:
                             self.W[0]=self.W[0]-learningrate*delete(matmul(Wcorr[0].T,array([X])),0,0)
                         else:
                             self.W[j]=self.W[j]-learningrate*delete(matmul(Wcorr[j].T,array([result[j-1][i]])),0,0)
-                Loss = (np.mean((self.predict(x)-y)**2))/len(x)
+                    #following loop lines currently boost the sigmoid(experimental).
+                    for j in range(lw-1,-1,-1):
+                        if j==0:
+                            self.W[0]=self.W[0]-learningrate*delete(matmul(tmp[0].T,array([X])),0,0)
+                        else:
+                            self.W[j]=self.W[j]-learningrate*delete(matmul(tmp[j].T,array([result[j-1][i]])),0,0)
+                Loss = (mean((self.predict(x)-y)**2))/len(x)
                 if plot:
                     if vmode == "queue":
                         try:
@@ -122,7 +142,7 @@ class model:
         if plot and vmode == "queue":
             event_q.put("close")
             q.join()
-        return
+        return 0
     def processplotterqueue(self,event_q,send_q):
         nnplotter.plotinit()
         send_q.put("Startsignal")
