@@ -56,13 +56,13 @@ class model:
         return None
     def weights(self,plot=False):
         '''prints out the weight matrixes w1 and w2'''
+        for i in range(len(self.W)):
+            print('W[%d]=\n'%i,self.W[i],'\n')
         if plot:
             nnplotter.plotinit()
             for i in range(len(self.W)):
                 nnplotter.plotweights(self.W[i],i)
             nnplotter.plt.show()
-        for i in range(len(self.W)):
-            print('W[%d]=\n'%i,self.W[i],'\n')
         return 0
     def predictrelu(self,x):
         '''returns the network output of a specific input specifically using relu activation'''
@@ -112,7 +112,7 @@ class model:
         """Loads a model saved using aimaster modules"""
         with open(f"{filename}",'rb') as file:
             return load(file)
-    def train(self,x,y,iterations,learningrate,plot=False,printy=True,printw=True,vmode="queue"):
+    def train(self,x,y,iterations,learningrate,plot=False,printy=True,printw=True,vmode="queue",boost=False):
         '''activation argument is used to select activation for neural network
         Specify Activation argument as < activation="sigmoid" > or "relu"
         Over the iterations, this function optimizes the values of all weights
@@ -128,15 +128,15 @@ class model:
         Adaptive learning rate will be introduced in future.
         '''
         if self.currentmodeltype=="sigmoid":
-            self.trainsigmoid(x,y,iterations,learningrate,plot,printy,printw,vmode)
+            self.trainsigmoid(x,y,iterations,learningrate,plot,printy,printw,vmode,boost)
         elif self.currentmodeltype=="relu":
-            self.trainrelu(x,y,iterations,learningrate,plot,printy,printw,vmode)
+            self.trainrelu(x,y,iterations,learningrate,plot,printy,printw,vmode,boost)
         elif self.currentmodeltype=="tanh":
-            self.traintanh(x,y,iterations,learningrate,plot,printy,printw,vmode)
+            self.traintanh(x,y,iterations,learningrate,plot,printy,printw,vmode,boost)
         else:
             print("Either currentmodeltype not set or corrupt. Check again")
             return None
-    def trainsigmoid(self,x,y,iterations,learningrate,plot=False,printy=True,printw=True,vmode="queue"):
+    def trainsigmoid(self,x,y,iterations,learningrate,plot=False,printy=True,printw=True,vmode="queue",boost=False):
         '''Uses Sigmoid Activation.'''
         if plot:
             if vmode=="queue":
@@ -156,8 +156,9 @@ class model:
         Wcorr=self.W*0
         lw= len(self.W)
         lx=len(x)-1
-        tmp=Wcorr
-        boostcounter = abs(y-self.predict(x)).argmax()
+        if boost:
+            tmp=Wcorr
+            boostcounter = abs(y-self.predict(x)).argmax()
         result=[[] for i in range(lw)]
         #Lsum=[[] for i in range(len(W))]
         p=lambda z:expit(matmul(pad(x,((0,0),(1,0)),
@@ -168,34 +169,32 @@ class model:
                 for i in range(lw-1,-1,-1):
                     result[i]=pad(p(i),((0,0),(1,0)),'constant',constant_values=1)
                 for i in range(len(x)):
-                    boostcounter = abs(y-self.predict(x)).argmax()
-                    #print ('boostcounter',boostcounter)
+                    if boost:
+                        boostcounter = abs(y-self.predict(x)).argmax()
                     X=pad(x[i],((1,0)),'constant',constant_values=1)
                     for j in range(lw-1,-1,-1):
                         if j==lw-1:
                             Wcorr[j]=array([(result[j][i]-y[i])*(result[j][i]*(1-result[j][i]))])#(pred - expected)*(derivative of activation)
                         else:
                             Wcorr[j]=(matmul(Wcorr[j+1][0][1:],self.W[j+1])*array([(result[j][i]*(1-result[j][i]))]))
-                    #print ( "Wcorr", Wcorr)
-                    tmp=tmp+Wcorr
-                    if i == boostcounter:
-                        tmp=Wcorr
-                    if(any([abs(subw.max()) > 0.5 for subw in tmp])):
-                        tmp = Wcorr
-                    #print ("tmp",tmp)
-                #Wcorr=tmp
-                #tmp=0
+                    if boost:
+                        tmp=tmp+Wcorr
+                        if i == boostcounter:
+                            tmp=Wcorr
+                        if(any([abs(subw.max()) > 0.5 for subw in tmp])):
+                            tmp = Wcorr
                     for j in range(lw-1,-1,-1):
                         if j==0:
                             self.W[0]=self.W[0]-learningrate*delete(matmul(Wcorr[0].T,array([X])),0,0)
                         else:
                             self.W[j]=self.W[j]-learningrate*delete(matmul(Wcorr[j].T,array([result[j-1][i]])),0,0)
                     #following loop lines currently boost the sigmoid(experimental).
-                    for j in range(lw-1,-1,-1):
-                        if j==0:
-                            self.W[0]=self.W[0]-learningrate*delete(matmul(tmp[0].T,array([X])),0,0)
-                        else:
-                            self.W[j]=self.W[j]-learningrate*delete(matmul(tmp[j].T,array([result[j-1][i]])),0,0)
+                    if boost :
+                        for j in range(lw-1,-1,-1):
+                            if j==0:
+                                self.W[0]=self.W[0]-learningrate*delete(matmul(tmp[0].T,array([X])),0,0)
+                            else:
+                                self.W[j]=self.W[j]-learningrate*delete(matmul(tmp[j].T,array([result[j-1][i]])),0,0)
                 Loss = (mean((self.predictsigmoid(x)-y)**2))/len(x)
                 if plot:
                     if vmode == "queue":
