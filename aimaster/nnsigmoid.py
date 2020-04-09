@@ -59,7 +59,7 @@ class model:
     def loadmodel(self,filename):
         with open(f"{filename}",'rb') as file:
             return load(file)
-    def train(self,x,y,iterations,learningrate,plot=False,printy=True,printw=True,vmode="queue",boost=False):
+    def train(self,x,y,iterations,learningrate,plot=False,printy=True,printw=True,vmode="queue",boost=0,L2=0):
         '''Uses Sigmoid Activation.'''
         if plot:
             if vmode=="queue":
@@ -78,7 +78,7 @@ class model:
                 plot=False
         Wcorr=self.W*0
         lw= len(self.W)
-        lx=len(x)-1
+        lx=len(x)
         if boost:
             tmp=Wcorr
             boostcounter = abs(y-self.predict(x)).argmax()
@@ -104,20 +104,20 @@ class model:
                         tmp=tmp+Wcorr
                         if i == boostcounter:
                             tmp=Wcorr
-                        if(any([abs(subw.max()) > 0.5 for subw in tmp])):
+                        if(any([abs(subw.max()) > boost for subw in tmp])):
                             tmp = Wcorr
                     for j in range(lw-1,-1,-1):
                         if j==0:
-                            self.W[0]=self.W[0]-learningrate*delete(matmul(Wcorr[0].T,array([X])),0,0)
+                            self.W[0]=self.W[0]-learningrate*(delete(matmul(Wcorr[0].T,array([X])),0,0)+((L2/2*lx)*self.W[0]))
                         else:
-                            self.W[j]=self.W[j]-learningrate*delete(matmul(Wcorr[j].T,array([result[j-1][i]])),0,0)
+                            self.W[j]=self.W[j]-learningrate*(delete(matmul(Wcorr[j].T,array([result[j-1][i]])),0,0)+((L2/2*lx)*self.W[j]))
                     #following loop lines currently boost the sigmoid(experimental).
                     if boost :
                         for j in range(lw-1,-1,-1):
                             if j==0:
-                                self.W[0]=self.W[0]-learningrate*delete(matmul(tmp[0].T,array([X])),0,0)
+                                self.W[0]=self.W[0]-learningrate*(delete(matmul(tmp[0].T,array([X])),0,0)+((L2/2*lx)*self.W[0]))
                             else:
-                                self.W[j]=self.W[j]-learningrate*delete(matmul(tmp[j].T,array([result[j-1][i]])),0,0)
+                                self.W[j]=self.W[j]-learningrate*(delete(matmul(tmp[j].T,array([result[j-1][i]])),0,0)+((L2/2*lx)*self.W[j]))
                 Loss = (mean((self.predict(x)-y)**2))/len(x)
                 if plot:
                     if vmode == "queue":
