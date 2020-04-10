@@ -9,6 +9,6 @@ And `matplotlib` for visualization.
 
 Feel free to experiment with aimaster.  
 
-##Installation
+## Installation
 
 Use `pip install aimaster` or `pip3 install aimaster` to install package from PyPI.  
