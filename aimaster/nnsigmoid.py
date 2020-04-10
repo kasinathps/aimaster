@@ -60,7 +60,8 @@ class model:
         with open(f"{filename}",'rb') as file:
             return load(file)
     def train(self,x,y,iterations,learningrate,plot=False,printy=True,printw=True,vmode="queue",boost=0,L2=0):
-        '''Uses Sigmoid Activation.'''
+        '''Uses Sigmoid Activation. Has asynchronous and synchronous plotting feature, L1 regularization 
+        and experimental boost feature.'''
         if plot:
             if vmode=="queue":
                 event_q = Queue()
@@ -142,6 +143,39 @@ class model:
             event_q.put("close")
             q.join()
         return 0
+    def trainminimal(self,x,y,iterations,learningrate,L2=0):
+        '''Uses Sigmoid Activation.Has no plotting Feature.But have l1 regularization'''
+        Wcorr=self.W*0
+        lw= len(self.W)
+        lx=len(x)
+        result=[[] for i in range(lw)]
+        p=lambda z:expit(matmul(pad(x,((0,0),(1,0)),
+              'constant',constant_values=1),self.W[z].T))if z==0 else expit(matmul(
+                  pad(p(z-1),((0,0),(1,0)),'constant',constant_values=1),self.W[z].T))
+        try:
+            for k in range(iterations):
+                for i in range(lw-1,-1,-1):
+                    result[i]=pad(p(i),((0,0),(1,0)),'constant',constant_values=1)
+                for i in range(len(x)):
+                    X=pad(x[i],((1,0)),'constant',constant_values=1)
+                    for j in range(lw-1,-1,-1):
+                        if j==lw-1:
+                            Wcorr[j]=array([(result[j][i]-y[i])*(result[j][i]*(1-result[j][i]))])
+                        else:
+                            Wcorr[j]=(matmul(Wcorr[j+1][0][1:],self.W[j+1])*array([(result[j][i]*(1-result[j][i]))]))
+                    for j in range(lw-1,-1,-1):
+                        if j==0:
+                            self.W[0]=self.W[0]-learningrate*(delete(matmul(Wcorr[0].T,array([X])),0,0)+((L2/2*lx)*self.W[0]))
+                        else:
+                            self.W[j]=self.W[j]-learningrate*(delete(matmul(Wcorr[j].T,array([result[j-1][i]])),0,0)+((L2/2*lx)*self.W[j]))
+                Loss = (mean((self.predict(x)-y)**2))
+                print('Loss'+str(Loss)+'\t iteration : {}'.format(k+1))
+        except KeyboardInterrupt:
+            pass
+        for i in range(lw):
+            print('W[%d]=\n'%i,self.W[i],'\n')
+        print(self.predict(x))
+        return 0
     def processplotterqueue(self,event_q,send_q):
         nnplotter.plotinit()
         send_q.put("Startsignal")
@@ -155,7 +189,6 @@ class model:
                 nnplotter.plt.close()
                 break
             else:
-                #print("Queue Received")#for debugging purposes
                 for i in range(len(tmp[0])):
                     nnplotter.plotweights(tmp[0][i],i)
                 nnplotter.ax.text(0,-0.25,s="iteration {: <5} Loss = {: <10}".format(tmp[1],tmp[2]))
