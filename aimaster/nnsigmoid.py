@@ -30,7 +30,7 @@ class model:
             print('W[%d]=\n'%i,self.W[i],'\n')
         return
     def weights(self,plot=False):
-        '''prints out the weight matrixes w1 and w2'''
+        """prints out the weight matrixes w1 and w2"""
         for i in range(len(self.W)):
             print('W[%d]=\n'%i,self.W[i],'\n')
         if plot:
@@ -40,13 +40,13 @@ class model:
             nnplotter.plt.show()
         return
     def predict(self,x):
-        '''returns the network output of a specific input specifically
+        """returns the network output of a specific input specifically
             NOTE:
                 if a single input is given to predict funcion it must be of shape
                 (1,n) {n = no of input neurons}  
                 Example: [1 , 1] has a shape of (2,) which is not accepted yet
                 but [[1, 1]] has a shape of (1,2) which is desired if single input
-                You know what you are doing :) '''
+                You know what you are doing :) """
         p=lambda z:expit(matmul(pad(x,((0,0),(1,0)),
             'constant',constant_values=1),self.W[z].T))if z==0 else expit(matmul(
                 pad(p(z-1),((0,0),(1,0)),
@@ -60,8 +60,8 @@ class model:
         with open(f"{filename}",'rb') as file:
             return load(file)
     def train(self,x,y,iterations,learningrate,plot=False,printy=True,printw=True,vmode="queue",boost=0,L2=0):
-        '''Uses Sigmoid Activation. Has asynchronous and synchronous plotting feature, L1 regularization 
-        and experimental boost feature.'''
+        """Uses Sigmoid Activation. Has asynchronous and synchronous plotting feature, L1 regularization 
+        and experimental boost feature."""
         if plot:
             if vmode=="queue":
                 event_q = Queue()
@@ -144,7 +144,7 @@ class model:
             q.join()
         return 0
     def trainminimal(self,x,y,iterations,learningrate,L2=0):
-        '''Uses Sigmoid Activation.Has no plotting Feature.But have l1 regularization'''
+        """Uses Sigmoid Activation.Has no plotting Feature.But have l1 regularization"""
         Wcorr=self.W*0
         lw= len(self.W)
         lx=len(x)

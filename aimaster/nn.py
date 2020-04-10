@@ -55,7 +55,7 @@ class model:
             print('W[%d]=\n'%i,self.W[i],'\n')
         return None
     def weights(self,plot=False):
-        '''prints out the weight matrixes w1 and w2'''
+        """prints out the weight matrixes w1 and w2"""
         for i in range(len(self.W)):
             print('W[%d]=\n'%i,self.W[i],'\n')
         if plot:
@@ -65,7 +65,7 @@ class model:
             nnplotter.plt.show()
         return 0
     def predictrelu(self,x):
-        '''returns the network output of a specific input specifically using relu activation'''
+        """returns the network output of a specific input specifically using relu activation"""
         l=len(self.W)-1
         q=lambda z,y:mx(matmul(pad(x,((0,0),(1,0)),
           'constant',constant_values=1),self.W[z].T),0)if z==0 else (expit(matmul(pad(q(z-1,y),((0,0),(1,0)),
@@ -73,27 +73,27 @@ class model:
             'constant',constant_values=1),self.W[z].T),0))
         return q(l,l)
     def predictsigmoid(self,x):
-        '''returns the network output of a specific input specifically using sigmoid activation'''
+        """returns the network output of a specific input specifically using sigmoid activation"""
         p=lambda z:expit(matmul(pad(x,((0,0),(1,0)),
             'constant',constant_values=1),self.W[z].T))if z==0 else expit(matmul(
                 pad(p(z-1),((0,0),(1,0)),
                        'constant',constant_values=1),self.W[z].T))
         return p(len(self.W)-1)
     def predicttanh(self,x):
-        '''returns the network output of a specific input specifically using tanh activation'''
+        """returns the network output of a specific input specifically using tanh activation"""
         p=lambda z:tanh(matmul(pad(x,((0,0),(1,0)),
             'constant',constant_values=1),self.W[z].T))if z==0 else tanh(matmul(
                 pad(p(z-1),((0,0),(1,0)),
                        'constant',constant_values=1),self.W[z].T))
         return p(len(self.W)-1)
     def predict(self,x ):
-        '''returns the network output of a specific input specifically
+        """returns the network output of a specific input specifically
             NOTE:
                 if a single input is given to predict funcion it must be of shape
                 (1,n) {n = no of input neurons}  
                 Example: [1 , 1] has a shape of (2,) which is not accepted yet
                 but [[1, 1]] has a shape of (1,2) which is desired if single input
-                You know what you are doing :) '''
+                You know what you are doing :) """
         if self.currentmodeltype == "relu":
             return(self.predictrelu(x))
         elif self.currentmodeltype == "sigmoid":
@@ -113,7 +113,7 @@ class model:
         with open(f"{filename}",'rb') as file:
             return load(file)
     def train(self,x,y,iterations,learningrate,plot=False,printy=True,printw=True,vmode="queue",boost=0,L2=0):
-        '''activation argument is used to select activation for neural network
+        """activation argument is used to select activation for neural network
         Specify Activation argument as < activation="sigmoid" > or "relu"
         Over the iterations, this function optimizes the values of all weights
         to reduce output error.
@@ -126,7 +126,7 @@ class model:
         less than required (result: slow training). So feel free to experiment with 
         different values as this module is for basic understanding and experiments :)
         Adaptive learning rate will be introduced in future.
-        '''
+        """
         if self.currentmodeltype=="sigmoid":
             self.trainsigmoid(x,y,iterations,learningrate,plot,printy,printw,vmode,boost,L2)
         elif self.currentmodeltype=="relu":
@@ -137,7 +137,7 @@ class model:
             print("Either currentmodeltype not set or corrupt. Check again")
             return None
     def trainsigmoid(self,x,y,iterations,learningrate,plot=False,printy=True,printw=True,vmode="queue",boost=0,L2=0):
-        '''Uses Sigmoid Activation.'''
+        """Uses Sigmoid Activation."""
         if plot:
             if vmode=="queue":
                 event_q = Queue()
@@ -220,7 +220,7 @@ class model:
             q.join()
         return 0
     def traintanh(self,x,y,iterations,learningrate,plot=False,printy=True,printw=True,vmode="queue",boost=0,L2=0):
-        '''Uses tanh Activation.'''
+        """Uses tanh Activation."""
         if plot:
             if vmode=="queue":
                 event_q = Queue()
@@ -284,7 +284,7 @@ class model:
             q.join()
         return 0
     def trainrelu(self,x,y,iterations,learningrate,plot=False,printy=True,printw=True,vmode="queue",boost=0,L2=0):
-        '''Relu Activation for Hidden layers and Sigmoid on final output.'''
+        """Relu Activation for Hidden layers and Sigmoid on final output."""
         if plot:
             if vmode=="queue":
                 event_q = Queue()
