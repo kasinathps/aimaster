@@ -1,4 +1,4 @@
-from numpy import array, matmul, pad, delete, sqrt , mean, tanh, add
+from numpy import array, matmul, pad, delete, sqrt , mean, tanh, add, arange
 from numpy import maximum as mx
 from numpy.random import randn , seed
 from scipy.special import expit
@@ -33,23 +33,24 @@ class model:
                 2 neurons, two hidden layers with 3 neurons each(without 
                 counting bias) and an output layer of 1 neuron""")
             return -1
-        self.architecture=architecture
+        self.architecture=architecture[:]
+        architecture.append(0)
         if mtype=="relu":
             self.W=array([randn(j,i+1)*sqrt(2/(i+1)) for i,j in zip(architecture[0::1],
-                architecture[1::1])])
+                architecture[1::1])])[arange(len(architecture)-2)]
             self.currentmodeltype="relu"
         elif mtype == "sigmoid":   
             self.W=array([randn(j,i+1)*sqrt(1/(i+1)) for i,j in zip(architecture[0::1],
-                architecture[1::1])])
+                architecture[1::1])])[arange(len(architecture)-2)]
             self.currentmodeltype="sigmoid"
         elif mtype == "tanh":   
             self.W=array([randn(j,i+1)*sqrt(1/(i+1)) for i,j in zip(architecture[0::1],
-                architecture[1::1])])
+                architecture[1::1])])[arange(len(architecture)-2)]
             self.currentmodeltype="tanh"
         else:
             print("model type is unknown or not set properly")
             return -1
-        print(f"\nModel initialized \n\n \t Architecture = {architecture} \n \t Model type = {self.currentmodeltype}\n\n Weights :")
+        print(f"\nModel initialized \n\n \t Architecture = {self.architecture} \n \t Model type = {self.currentmodeltype}\n\n Weights :")
         for i in range(len(self.W)):
             self.W[i][:,0]=0#Initializes bias weights to 0
             print('W[%d]=\n'%i,self.W[i],'\n')
@@ -195,7 +196,7 @@ class model:
                                 self.W[0]=self.W[0]-learningrate*(delete(matmul(tmp[0].T,array([X])),0,0)+((L2/2*lx)*self.W[0]))
                             else:
                                 self.W[j]=self.W[j]-learningrate*(delete(matmul(tmp[j].T,array([result[j-1][i]])),0,0)+((L2/2*lx)*self.W[j]))
-                Loss = (mean((self.predictsigmoid(x)-y)**2))/len(x)
+                Loss = (mean((self.predictsigmoid(x)-y)**2))
                 if plot:
                     if vmode == "queue":
                         try:
@@ -208,8 +209,9 @@ class model:
                             pconn.send(self.W)
                             pconn3.send([k,Loss])
                 if printy:
-                    print(self.predictsigmoid(x))
-                print('iteration : {}'.format(k+1))
+                    print(str(self.predictsigmoid(x))+'\n iteration :'+ str(k+1))
+                else:
+                    print('iteration : {}'.format(k+1))
         except KeyboardInterrupt:
             pass
         if printw:
@@ -259,7 +261,7 @@ class model:
                             self.W[0]=self.W[0]-learningrate*delete(matmul(Wcorr[0].T,array([X])),0,0)
                         else:
                             self.W[j]=self.W[j]-learningrate*delete(matmul(Wcorr[j].T,array([result[j-1][i]])),0,0)
-                Loss = (mean((self.predicttanh(x)-y)**2))/len(x)
+                Loss = (mean((self.predicttanh(x)-y)**2))
                 if plot:
                     if vmode == "queue":
                         try:
@@ -272,8 +274,9 @@ class model:
                             pconn.send(self.W)
                             pconn3.send([k,Loss])
                 if printy:
-                    print(self.predicttanh(x))
-                print('iteration : {}'.format(k+1))
+                    print(str(self.predicttanh(x))+'\n iteration :'+ str(k+1))
+                else:
+                    print('iteration : {}'.format(k+1))
         except KeyboardInterrupt:
             pass
         if printw:
@@ -326,7 +329,7 @@ class model:
                             self.W[0]=self.W[0]-learningrate*delete(matmul(Wcorr[0].T,array([X])),0,0)
                         else:
                             self.W[j]=self.W[j]-learningrate*delete(matmul(Wcorr[j].T,array([result[j-1][i]])),0,0)
-                Loss = (mean((self.predictrelu(x)-y)**2))/len(x)
+                Loss = (mean((self.predictrelu(x)-y)**2))
                 if plot:
                     if vmode == "queue":
                         try:
@@ -339,8 +342,9 @@ class model:
                             pconn.send(self.W)
                             pconn3.send([k,Loss])
                 if printy:
-                    print(self.predictrelu(x))
-                print('iteration : {}'.format(k+1))
+                    print(str(self.predictrelu(x))+'\n iteration :'+ str(k+1))
+                else:
+                    print('iteration : {}'.format(k+1))
         except KeyboardInterrupt:
             pass
         if printw:

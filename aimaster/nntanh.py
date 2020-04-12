@@ -99,7 +99,7 @@ class model:
                             self.W[0]=self.W[0]-learningrate*delete(matmul(Wcorr[0].T,array([X])),0,0)
                         else:
                             self.W[j]=self.W[j]-learningrate*delete(matmul(Wcorr[j].T,array([result[j-1][i]])),0,0)
-                Loss = (np.mean((self.predict(x)-y)**2))/len(x)
+                Loss = (np.mean((self.predict(x)-y)**2))
                 if plot:
                     if vmode == "queue":
                         try:

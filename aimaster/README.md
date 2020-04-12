@@ -37,11 +37,11 @@ an experimental boost feature(always use a value less than 0.1 for boost)
 
 
 
-## Sample
+## Usage
 ```python
 from aimaster.nn import model
 yourmodelname = model(["your desired architecture"]
 ```
-For Example ```model([4,5,5,3])``` gives a 
-neural network with 4 inputs plus a bias neuron and two hidden layers of 5 neurons each and with bias and an output layer of 3 neurons.
+For Example ```model([4,5,5,3],'sigmoid')``` gives a 
+neural network with 4 inputs plus a bias neuron and two hidden layers of 5 neurons each and with bias and an output layer of 3 neurons with **sigmoid** activation.
   

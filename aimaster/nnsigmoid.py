@@ -1,5 +1,5 @@
 import numpy as np
-from numpy import array, matmul, pad, delete, sqrt, mean, add
+from numpy import array, matmul, pad, delete, sqrt, mean, add, arange
 from numpy import maximum as mx
 from numpy.random import randn,rand
 from scipy.special import expit
@@ -22,9 +22,10 @@ class model:
                 2 neurons, two hidden layers with 3 neurons each(without 
                 counting bias) and an output layer of 1 neuron""")
             return None
-        self.arch=architecture
+        self.arch=architecture[:]
+        architecture.append(0)
         self.W=array([randn(j,i+1)*np.sqrt(1/(i+1)) for i,j in zip(architecture[0::1],
-            architecture[1::1])])
+            architecture[1::1])])[arange(len(architecture)-2)]
         for i in range(len(self.W)):
             self.W[i][:,0]=0
             print('W[%d]=\n'%i,self.W[i],'\n')
@@ -119,7 +120,7 @@ class model:
                                 self.W[0]=self.W[0]-learningrate*(delete(matmul(tmp[0].T,array([X])),0,0)+((L2/2*lx)*self.W[0]))
                             else:
                                 self.W[j]=self.W[j]-learningrate*(delete(matmul(tmp[j].T,array([result[j-1][i]])),0,0)+((L2/2*lx)*self.W[j]))
-                Loss = (mean((self.predict(x)-y)**2))/len(x)
+                Loss = (mean((self.predict(x)-y)**2))
                 if plot:
                     if vmode == "queue":
                         try:
