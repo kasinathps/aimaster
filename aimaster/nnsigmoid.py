@@ -60,7 +60,7 @@ class model:
     def loadmodel(self,filename):
         with open(f"{filename}",'rb') as file:
             return load(file)
-    def train(self,x,y,iterations,learningrate,plot=False,printy=True,printw=True,vmode="queue",boost=0,L2=0):
+    def train(self,x,y,iterations,learningrate,plot=False,L2=0,printy=True,printw=True,vmode="queue",boost=0):
         """Uses Sigmoid Activation. Has asynchronous and synchronous plotting feature, L1 regularization 
         and experimental boost feature."""
         if plot:

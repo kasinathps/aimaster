@@ -307,8 +307,6 @@ class model:
         lw= len(self.W)
         result=[[] for i in range(lw)]
         #Lsum=[[] for i in range(len(W))]
-        if plot:
-            nnplotter.plotinit()
         q=lambda z,y:mx(matmul(pad(x,((0,0),(1,0)),
           'constant',constant_values=1),self.W[z].T),0)if z==0 else (expit(matmul(pad(q(z-1,y),((0,0),(1,0)),
             'constant',constant_values=1),self.W[z].T)) if (z == y) else mx(matmul(pad(q(z-1,y),((0,0),(1,0)),
