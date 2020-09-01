@@ -96,7 +96,7 @@ class model:
                     X=pad(x[i],((1,0)),'constant',constant_values=1)
                     for j in range(lw-1,-1,-1):
                         if j==lw-1:
-                            Wcorr[j]=array([(result[j][i]-np.concatenate([[0],y[i]]))*(result[j][i][1]*(-np.concatenate([array([1]),array([1-result[j][i][1]]),result[j][i][2:]])))])#(pred - expected)*(derivative of activation)
+                            Wcorr[j]=array([(result[j][i]-np.concatenate([[1],y[i]]))])#(pred - expected)*(derivative of activation)
                         else:
                             Wcorr[j]=(matmul(Wcorr[j+1][0][1:],self.W[j+1])*array([(result[j][i]*(1-result[j][i]))]))
                     for j in range(lw-1,-1,-1):
@@ -241,11 +241,3 @@ class model:
                 cconn3.close()
                 nnplotter.plt.close()
                 break
-
-
-if __name__ == "__main__":
-    m = model([2,3,4])
-    x=np.array([[1,1],[1,0],[0,1],[0,0]])
-    y=np.array([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]])
-    m.predict(x)
-    m.trainsigmoidsoftmax(x,y,1000,1,1)
