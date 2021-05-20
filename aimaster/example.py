@@ -1,6 +1,7 @@
 from aimaster.nn import model
 from numpy import array
-if __name__=="__main__":
+print("use 'example.run()' for demonstration when importing inside python interactive terminal")
+def run():
     x=array([[0,0],[0,1],[1,0],[1,1]])
     print("x=array([[0,0],[0,1],[1,0],[1,1]])\n input matrix x \n",x)
     input("Press Enter key to continue...")
@@ -21,3 +22,6 @@ if __name__=="__main__":
     print("M.predict(x) \nUse the model to predict output for input x [[0,0],[0,1],[1,0],[1,1]]")
     print(M.predict(x))
     input("Press Enter key to exit...(Power Button also does the job)\n")
+
+if __name__=="__main__":
+    run()
