@@ -37,15 +37,15 @@ class model:
         architecture.append(0)
         if mtype=="relu":
             self.W=array([randn(j,i+1)*sqrt(2/(i+1)) for i,j in zip(architecture[0::1],
-                architecture[1::1])])[arange(len(architecture)-2)]
+                architecture[1::1])], dtype=object)[arange(len(architecture)-2)]
             self.currentmodeltype="relu"
         elif mtype == "sigmoid":   
             self.W=array([randn(j,i+1)*sqrt(1/(i+1)) for i,j in zip(architecture[0::1],
-                architecture[1::1])])[arange(len(architecture)-2)]
+                architecture[1::1])], dtype=object)[arange(len(architecture)-2)]
             self.currentmodeltype="sigmoid"
         elif mtype == "tanh":   
             self.W=array([randn(j,i+1)*sqrt(1/(i+1)) for i,j in zip(architecture[0::1],
-                architecture[1::1])])[arange(len(architecture)-2)]
+                architecture[1::1])], dtype=object)[arange(len(architecture)-2)]
             self.currentmodeltype="tanh"
         else:
             print("model type is unknown or not set properly")
