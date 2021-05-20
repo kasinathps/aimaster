@@ -370,7 +370,7 @@ class model:
                 for i in range(len(tmp[0])):
                     nnplotter.plotweights(tmp[0][i],i)
                 nnplotter.ax.text(0,-0.25,s="iteration {: <5} Loss = {: <10}".format(tmp[1],tmp[2]))
-                nnplotter.plt.pause(0.00000001)
+                nnplotter.plt.pause(0.001)
                 send_q.put("Send")
     def processplotterpipe(self,cconn,cconn2,cconn3):
         nnplotter.plotinit()
@@ -390,7 +390,7 @@ class model:
             for i in range(len(tmp)):
                 nnplotter.plotweights(tmp[i],i)
             nnplotter.ax.text(0,-0.25,s="iteration {: <5} Loss = {: <10}".format(str(k[0]),str(k[1])))
-            nnplotter.plt.pause(0.00000001)
+            nnplotter.plt.pause(0.001)
             try:
                 cconn2.send("Send")
             except:
