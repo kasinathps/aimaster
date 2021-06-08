@@ -12,3 +12,12 @@ Feel free to experiment with aimaster.
 ## Installation
 
 Use `pip install aimaster` or `pip3 install aimaster` to install package from PyPI.  
+
+## Running example code
+
+Run `example.py` from file system or
+From interactive terminal
+`from aimaster import example`
+`example.run()`
+
+The example is a NN model learning a basic XOR gate with visualization in action.
