@@ -15,9 +15,9 @@ Use `pip install aimaster` or `pip3 install aimaster` to install package from Py
 
 ## Running example code
 
-Run `example.py` from file system or
-From interactive terminal
-`from aimaster import example`
-`example.run()`
+Run `example.py` from file system or  
+From interactive terminal  
+`from aimaster import example`  
+`example.run()`  
 
-The example is a NN model learning a basic XOR gate with visualization in action.
+The example is a NN model learning a basic XOR gate with visualization in action.  
