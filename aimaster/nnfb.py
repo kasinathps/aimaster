@@ -67,7 +67,7 @@ def loadmodel(filename):
     try:
         print('Model Architecture = {}\n'.format(arch))
         print('Model Weights W = \n {}'.format(W))
-    except:
+    except Exception:
         print('Something went wrong double check {} exist in current \
               working directory'.format(filename))
 

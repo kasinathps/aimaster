@@ -10,7 +10,7 @@ def plot(p,parameter,weight=1):
     global ax
     try :
         assert ax
-    except:
+    except Exception:
         print('plot not initialized')
         return
     if weight>0:

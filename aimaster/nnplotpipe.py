@@ -200,7 +200,7 @@ class model:
                 tmp=cconn.recv()
                 cconn2.send("")
                 k=cconn3.recv()
-            except:
+            except Exception:
                 cconn.close()
                 cconn2.close()
                 cconn3.close()
@@ -212,7 +212,7 @@ class model:
             nnplotter.plt.pause(0.00000001)
             try:
                 cconn2.send("Send")
-            except:
+            except Exception:
                 cconn.close()
                 cconn2.close()
                 cconn3.close()

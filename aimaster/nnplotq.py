@@ -136,7 +136,7 @@ class model:
                     try:
                         if send_q.get_nowait()=="Send" and k!=iterations-1:
                             event_q.put([self.W,k,Loss])
-                    except:
+                    except Exception:
                         pass
                 if printy:
                     print(self.predict(x))
@@ -188,7 +188,7 @@ class model:
                     try:
                         if send_q.get_nowait()=="Send" and k!=iterations-1:
                             event_q.put([self.W,k,Loss])
-                    except:
+                    except Exception:
                         pass
                 if printy:
                     print(self.predictrelu(x))

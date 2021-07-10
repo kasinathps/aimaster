@@ -202,7 +202,7 @@ class model:
                         try:
                             if send_q.get_nowait()=="Send" and k!=iterations-1:
                                 event_q.put([self.W,k,Loss])
-                        except:
+                        except Exception:
                             pass
                     else:
                         if pconn2.recv() == "Send":
@@ -267,7 +267,7 @@ class model:
                         try:
                             if send_q.get_nowait()=="Send" and k!=iterations-1:
                                 event_q.put([self.W,k,Loss])
-                        except:
+                        except Exception:
                             pass
                     else:
                         if pconn2.recv() == "Send":
@@ -333,7 +333,7 @@ class model:
                         try:
                             if send_q.get_nowait()=="Send" and k!=iterations-1:
                                 event_q.put([self.W,k,Loss])
-                        except:
+                        except Exception:
                             pass
                     else:
                         if pconn2.recv() == "Send":
@@ -381,7 +381,7 @@ class model:
                 tmp=cconn.recv()
                 cconn2.send("")
                 k=cconn3.recv()
-            except:
+            except Exception:
                 cconn.close()
                 cconn2.close()
                 cconn3.close()
@@ -393,7 +393,7 @@ class model:
             nnplotter.plt.pause(0.001)
             try:
                 cconn2.send("Send")
-            except:
+            except Exception:
                 cconn.close()
                 cconn2.close()
                 cconn3.close()
