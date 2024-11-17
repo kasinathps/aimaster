@@ -1,60 +1,74 @@
-from numpy import array, matmul, pad, delete, sqrt , mean, tanh, add, arange
+from numpy import array, matmul, pad, delete, sqrt , mean, tanh, add, arange, ndarray
 from numpy import maximum as mx
 from numpy.random import randn , seed
 from scipy.special import expit
 from aimaster.tools import nnplotter
 from pickle import dump, load
 from multiprocessing import Process, Queue, Pipe
+from typing import List
+
 
 class model:
-    def __init__(self, architecture=[], mtype = "sigmoid",staticinitialization=0):
-        """ Creates a Neural Network model with given architecture and activation type.
-            architecture = [input neurons,hidden layer neurons, output neurons]
-                Example :
-                    m1 = model([2,3,3,1]) gives nn with 2 inputs plus a bias,
-                    two hidden layers with 3 neurons each with additional bias,
-                    and connected to one output neuron
-                    Bias Weights are initialized to ZERO.
-            mtype : modeltype   "relu", "sigmoid" and "tanh" are supported.
-            staticinitialization :   is fed into numpy.random.seed() to generate same 
-                model parameters over different machines or different times"""
+    def __init__(self, architecture: List[int] = [], mtype: str = "sigmoid", staticinitialization: int = 0):
+        """Creates a Neural Network model with given architecture and activation type.
+        
+        Args:
+            architecture: List[int] with layer sizes [input neurons, hidden layer neurons, output neurons]
+            mtype: str, one of "relu", "sigmoid", or "tanh"
+            staticinitialization: int, seed for reproducibility
+            
+        Raises:
+            ValueError: If architecture or mtype is invalid
+        """
+        # Validate model type
+        valid_mtypes = {"relu", "sigmoid", "tanh"}
+        if mtype not in valid_mtypes:
+            raise ValueError(f"mtype must be one of {valid_mtypes}, got {mtype}")
+
+        # Validate architecture
+        if not isinstance(architecture, list):
+            raise ValueError("architecture must be a list of integers")
+        
+        if architecture:
+            if not all(isinstance(x, int) and x > 0 for x in architecture):
+                raise ValueError("all elements in architecture must be positive integers")
+            if len(architecture) < 2:
+                raise ValueError("architecture must have at least 2 layers")
+
         if staticinitialization:
+            if not isinstance(staticinitialization, int):
+                raise ValueError("staticinitialization must be an integer")
             seed(staticinitialization)
-        if not architecture :
+
+        # Original initialization logic
+        if not architecture:
             print("""architecture is not given as input.
                 Assuming creating a dummy model to be used for loading a saved model...
                 Initializing default neural network of architecture [2,2]. (2x2)...
                 Initializing ...""")
             architecture = [2,2]
-        if not isinstance(architecture,list):
-            print("""give architecture as a list of neurons in each layer including
-                input layer,hidden layers and output layer!
-                Example: architecture=[2,3,3,1] for nn with input layer of 
-                2 neurons, two hidden layers with 3 neurons each(without 
-                counting bias) and an output layer of 1 neuron""")
-            return -1
-        self.architecture=architecture[:]
+
+        self.architecture = architecture[:]
         architecture.append(0)
-        if mtype=="relu":
-            self.W=array([randn(j,i+1)*sqrt(2/(i+1)) for i,j in zip(architecture[0::1],
+        
+        # Initialize weights based on model type
+        if mtype == "relu":
+            self.W = array([randn(j,i+1)*sqrt(2/(i+1)) for i,j in zip(architecture[0::1],
                 architecture[1::1])], dtype=object)[arange(len(architecture)-2)]
-            self.currentmodeltype="relu"
+            self.currentmodeltype = "relu"
         elif mtype == "sigmoid":   
-            self.W=array([randn(j,i+1)*sqrt(1/(i+1)) for i,j in zip(architecture[0::1],
+            self.W = array([randn(j,i+1)*sqrt(1/(i+1)) for i,j in zip(architecture[0::1],
                 architecture[1::1])], dtype=object)[arange(len(architecture)-2)]
-            self.currentmodeltype="sigmoid"
+            self.currentmodeltype = "sigmoid"
         elif mtype == "tanh":   
-            self.W=array([randn(j,i+1)*sqrt(1/(i+1)) for i,j in zip(architecture[0::1],
+            self.W = array([randn(j,i+1)*sqrt(1/(i+1)) for i,j in zip(architecture[0::1],
                 architecture[1::1])], dtype=object)[arange(len(architecture)-2)]
-            self.currentmodeltype="tanh"
-        else:
-            print("model type is unknown or not set properly")
-            return -1
+            self.currentmodeltype = "tanh"
+
         print(f"\nModel initialized \n\n \t Architecture = {self.architecture} \n \t Model type = {self.currentmodeltype}\n\n Weights :")
         for i in range(len(self.W)):
-            self.W[i][:,0]=0#Initializes bias weights to 0
-            print('W[%d]=\n'%i,self.W[i],'\n')
-        return None
+            self.W[i][:,0] = 0  # Initializes bias weights to 0
+            print('W[%d]=\n'%i, self.W[i], '\n')
     def weights(self,plot=False):
         """prints out the weight matrixes w1 and w2"""
         for i in range(len(self.W)):
@@ -87,56 +101,150 @@ class model:
                 pad(p(z-1),((0,0),(1,0)),
                        'constant',constant_values=1),self.W[z].T))
         return p(len(self.W)-1)
-    def predict(self,x ):
-        """returns the network output of a specific input specifically
-            NOTE:
-                if a single input is given to predict funcion it must be of shape
+    def predict(self, x: ndarray) -> ndarray:
+        """Returns the network output for the given input.
+        Note    if a single input is given to predict funcion it must be of shape
                 (1,n) {n = no of input neurons}  
                 Example: [1 , 1] has a shape of (2,) which is not accepted yet
                 but [[1, 1]] has a shape of (1,2) which is desired if single input
-                You know what you are doing :) """
-        if self.currentmodeltype == "relu":
-            return(self.predictrelu(x))
-        elif self.currentmodeltype == "sigmoid":
-            return(self.predictsigmoid(x))
-        elif self.currentmodeltype == "tanh":
-            return(self.predicttanh(x))
-        else:
-            print("currentmodeltype is unknown or not set properly")
-            return None
-    def savemodel(self,filename):
-        """Saves the model in pickle format"""
-        with open(f"{filename}",'wb') as file:
-            dump(self,file)
+                You know what you are doing :)
+        Args:
+            x: numpy.ndarray of shape (samples, features) matching input layer size
+            
+        Returns:
+            numpy.ndarray of predictions
+            
+        Raises:
+            ValueError: If input shape doesn't match network architecture
+        """
+        # Validate input
+        try:
+        # Attempt to convert the list to a numpy array if provided is not ndarray
+            x = array(x)
+        except TypeError as e:
+            raise ValueError("Error: The input is not a valid list or array. {e}")
+        if not isinstance(x, ndarray):
+            raise ValueError("Input must be a numpy array")
+            
+        expected_features = self.architecture[0]
+        if len(x.shape) != 2:
+            raise ValueError(f"Input must be 2D array, got shape {x.shape}")
+            
+        if x.shape[1] != expected_features:
+            raise ValueError(f"Expected {expected_features} input features, got {x.shape[1]}")
 
-    def loadmodel(self,filename):
-        """Loads a model saved using aimaster modules"""
-        with open(f"{filename}",'rb') as file:
-            return load(file)
-    def train(self,x,y,iterations,learningrate,plot=False,printy=True,printw=True,vmode="queue",boost=0,L2=0):
-        """activation argument is used to select activation for neural network
-        Specify Activation argument as < activation="sigmoid" > or "relu"
-        Over the iterations, this function optimizes the values of all weights
-        to reduce output error.
-        if printy is set True (default) it prints the output on each iterations,
-        if printw is set True (default) it prints the weight matrices on the 
-        end of iterations 
+        if self.currentmodeltype == "relu":
+            return self.predictrelu(x)
+        elif self.currentmodeltype == "sigmoid":
+            return self.predictsigmoid(x)
+        elif self.currentmodeltype == "tanh":
+            return self.predicttanh(x)
+        else:
+            raise ValueError("Invalid model type")
+    def savemodel(self, filename: str) -> None:
+        """Saves the model in pickle format.
         
-        NOTE: learning rate is set default to 0.1 which sometimes is
+        Args:
+            filename: str, path to save the model
+            
+        Raises:
+            ValueError: If filename is invalid
+        """
+        if not isinstance(filename, str):
+            raise ValueError("filename must be a string")
+        if not filename:
+            raise ValueError("filename cannot be empty")
+            
+        with open(filename, 'wb') as file:
+            dump(self, file)
+
+    def loadmodel(filename: str) -> 'model':
+        """Loads a model saved using aimaster modules.
+         NOTE: learning rate is set default to 0.1 which sometimes is
         morethan required (result: gradient descent will not converge) or otherwise
         less than required (result: slow training). So feel free to experiment with 
         different values as this module is for basic understanding and experiments :)
         Adaptive learning rate will be introduced in future.
+        Args:
+            filename: str, path to the saved model
+            
+        Returns:
+            model object
+            
+        Raises:
+            ValueError: If filename is invalid
+            FileNotFoundError: If file doesn't exist
         """
-        if self.currentmodeltype=="sigmoid":
-            self.trainsigmoid(x,y,iterations,learningrate,plot,printy,printw,vmode,boost,L2)
-        elif self.currentmodeltype=="relu":
-            self.trainrelu(x,y,iterations,learningrate,plot,printy,printw,vmode,boost,L2)
-        elif self.currentmodeltype=="tanh":
-            self.traintanh(x,y,iterations,learningrate,plot,printy,printw,vmode,boost,L2)
+        if not isinstance(filename, str):
+            raise ValueError("filename must be a string")
+        if not filename:
+            raise ValueError("filename cannot be empty")
+            
+        try:
+            with open(filename, 'rb') as file:
+                return load(file)
+        except FileNotFoundError:
+            raise FileNotFoundError(f"No model file found at {filename}")
+    def train(self, x: ndarray, y: ndarray, iterations: int, learningrate: float, 
+              plot: bool = False, printy: bool = True, printw: bool = True,
+              vmode: str = "queue", boost: float = 0, L2: float = 0) -> None:
+        """Trains the neural network.
+        
+        Args:
+            x: numpy.ndarray of training inputs
+            y: numpy.ndarray of target outputs
+            iterations: int, number of training iterations
+            learningrate: float, learning rate
+            plot: bool, whether to plot training progress
+            printy: bool, whether to print predictions
+            printw: bool, whether to print weights
+            vmode: str, visualization mode ("queue" or "pipe")
+            boost: float, boost parameter
+            L2: float, L2 regularization parameter
+            
+        Raises:
+            ValueError: If inputs are invalid or shapes don't match
+        """
+        # Validate inputs
+        if not isinstance(x, ndarray) or not isinstance(y, ndarray):
+            raise ValueError("x and y must be numpy arrays")
+            
+        if len(x.shape) != 2 or len(y.shape) != 2:
+            raise ValueError("x and y must be 2D arrays")
+            
+        if x.shape[0] != y.shape[0]:
+            raise ValueError(f"x and y must have same number of samples, got {x.shape[0]} and {y.shape[0]}")
+            
+        if x.shape[1] != self.architecture[0]:
+            raise ValueError(f"Expected {self.architecture[0]} input features, got {x.shape[1]}")
+            
+        if y.shape[1] != self.architecture[-1]:
+            raise ValueError(f"Expected {self.architecture[-1]} output features, got {y.shape[1]}")
+            
+        if not isinstance(iterations, int) or iterations <= 0:
+            raise ValueError("iterations must be a positive integer")
+            
+        if not isinstance(learningrate, (int, float)) or learningrate <= 0:
+            raise ValueError("learningrate must be a positive number")
+            
+        if not isinstance(boost, (int, float)) or boost < 0:
+            raise ValueError("boost must be a non-negative number")
+            
+        if not isinstance(L2, (int, float)) or L2 < 0:
+            raise ValueError("L2 must be a non-negative number")
+            
+        if vmode not in {"queue", "pipe"}:
+            raise ValueError("vmode must be 'queue' or 'pipe'")
+
+        # Call appropriate training method
+        if self.currentmodeltype == "sigmoid":
+            self.trainsigmoid(x, y, iterations, learningrate, plot, printy, printw, vmode, boost, L2)
+        elif self.currentmodeltype == "relu":
+            self.trainrelu(x, y, iterations, learningrate, plot, printy, printw, vmode, boost, L2)
+        elif self.currentmodeltype == "tanh":
+            self.traintanh(x, y, iterations, learningrate, plot, printy, printw, vmode, boost, L2)
         else:
-            print("Either currentmodeltype not set or corrupt. Check again")
-            return None
+            raise ValueError("Invalid model type")
     def trainsigmoid(self,x,y,iterations,learningrate,plot=False,printy=True,printw=True,vmode="queue",boost=0,L2=0):
         """Uses Sigmoid Activation."""
         if plot:
